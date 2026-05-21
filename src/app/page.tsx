@@ -10,6 +10,8 @@ import {
   Clock,
   LogOut
 } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
+
 
 export default function Home() {
   const currentHour = new Date().getHours();
@@ -42,43 +44,43 @@ export default function Home() {
       description: "CRM & Contacts",
       icon: <Users className="w-6 h-6" />,
       href: "/customers",
-      color: "bg-purple-50 text-purple-600 border-purple-100",
+      color: "bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800",
     },
   ];
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 p-6 font-sans">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-background p-6 font-sans">
       <div className="max-w-4xl w-full">
         
         {/* Header */}
         <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center shadow-lg">
-                <span className="text-white font-bold text-xl">M</span>
+              <div className="w-10 h-10 bg-primary rounded-md flex items-center justify-center shadow-lg">
+                <span className="text-primary-foreground font-bold text-xl">M</span>
               </div>
               <div>
-                <h1 className="text-2xl font-bold tracking-tight text-slate-900">Melo ERP Lite</h1>
-                <p className="text-sm text-slate-500 font-medium uppercase tracking-wider">Enterprise Resource Planning</p>
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">Melo ERP Lite</h1>
+                <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">Enterprise Resource Planning</p>
               </div>
             </div>
-            <h2 className="text-4xl font-bold text-slate-800">
+            <h2 className="text-4xl font-bold text-foreground">
               {greeting}, Admin
             </h2>
-            <p className="text-slate-500 mt-2 text-lg">
+            <p className="text-muted-foreground mt-2 text-lg">
               Select a workspace module to begin your operations.
             </p>
           </div>
           
-          <div className="flex items-center gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm self-start md:self-auto">
-            <div className="p-2 bg-slate-100 rounded-lg">
-              <Clock className="w-5 h-5 text-slate-600" />
+          <div className="flex items-center gap-4 bg-card p-4 rounded-lg border border-border shadow-sm self-start md:self-auto">
+            <div className="p-2 bg-muted rounded-lg">
+              <Clock className="w-5 h-5 text-muted-foreground" />
             </div>
             <div className="text-right">
-              <p className="text-sm font-semibold text-slate-900 leading-none">
+              <p className="text-sm font-semibold text-foreground leading-none">
                 {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
               </p>
-              <p className="text-xs text-slate-500 mt-1 uppercase tracking-tighter">System Status: Online</p>
+              <p className="text-xs text-muted-foreground mt-1 uppercase tracking-tighter">System Status: Online</p>
             </div>
           </div>
         </header>
@@ -87,13 +89,13 @@ export default function Home() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 transition-all duration-500">
           {modules.map((module) => (
             <Link key={module.title} href={module.href}>
-              <div className="group relative bg-white p-8 rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-slate-300 transition-all duration-300 overflow-hidden cursor-pointer">
+              <div className="group relative bg-card p-8 rounded-lg border border-border shadow-sm hover:shadow-xl hover:border-accent transition-all duration-300 overflow-hidden cursor-pointer">
                 <div className="relative z-10">
-                  <div className={`w-14 h-14 rounded-2xl ${module.color} border flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
+                  <div className={`w-14 h-14 rounded-lg ${module.color} border flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
                     {module.icon}
                   </div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-1">{module.title}</h3>
-                  <p className="text-slate-500">{module.description}</p>
+                  <h3 className="text-xl font-bold text-foreground mb-1">{module.title}</h3>
+                  <p className="text-muted-foreground">{module.description}</p>
                 </div>
                 <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
                   {module.icon}
@@ -104,9 +106,9 @@ export default function Home() {
         </div>
 
         {/* Action Bar */}
-        <div className="mt-12 flex flex-col md:flex-row items-center justify-between gap-6 p-6 rounded-3xl shadow-xl text-white bg-slate-900">
+        <div className="mt-12 flex flex-col md:flex-row items-center justify-between gap-6 p-6 rounded-lg shadow-xl text-white bg-slate-900">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-md">
+            <div className="w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center backdrop-blur-md">
               <ShieldCheck className="w-6 h-6 text-emerald-400" />
             </div>
             <div>
@@ -116,17 +118,19 @@ export default function Home() {
           </div>
           
           <div className="flex items-center gap-3 w-full md:w-auto">
+            <ThemeToggle className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white" />
             <Link href="/login">
+
               <Button 
                 variant="ghost" 
-                className="h-12 px-6 text-white hover:bg-white/10 rounded-xl font-bold flex gap-2"
+                className="h-12 px-6 text-white hover:bg-white/10 rounded-md font-bold flex gap-2"
               >
                 <LogOut className="w-5 h-5" />
                 Sign Out
               </Button>
             </Link>
             <Link href="/settings">
-              <Button className="bg-white text-slate-900 hover:bg-slate-100 font-bold h-12 w-12 p-0 rounded-xl transition-all">
+              <Button className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold h-12 w-12 p-0 rounded-md transition-all">
                 <Settings className="w-6 h-6" />
               </Button>
             </Link>

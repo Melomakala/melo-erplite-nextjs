@@ -251,10 +251,6 @@ Spacing:
 - gap-4
 - gap-6
 
-Border Radius:
-- rounded-lg
-- rounded-xl
-
 Shadow:
 - shadow-sm
 - shadow
