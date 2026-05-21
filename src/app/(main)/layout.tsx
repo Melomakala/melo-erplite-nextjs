@@ -1,4 +1,4 @@
-import { NavSidebar } from "@/components/layout/nav-sidebar"
+import { NavSidebar } from "./_components/nav-sidebar"
 
 export default function MainLayout({
   children,
