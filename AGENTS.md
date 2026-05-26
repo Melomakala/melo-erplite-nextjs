@@ -77,6 +77,9 @@ src/
 │   ├── orders/
 │   ├── customers/
 │   ├── login/
+│   │   ├── _components/             # Page-specific components
+│   │   │   └── login-form.tsx
+│   │   └── page.tsx
 │   ├── register/
 │   │
 │   ├── layout.tsx
@@ -84,16 +87,10 @@ src/
 │
 ├── components/
 │   │
-│   ├── ui/                         # shadcn/ui
-│   ├── forms/
-│   ├── tables/
-│   ├── dialogs/
-│   ├── cards/
-│   └── layout/
+│   ├── ui/                         # shadcn/ui│ 
 │
 ├── server/
 │   │
-│   ├── models/
 │   ├── repositories/
 │   ├── services/
 │   ├── validations/
@@ -117,13 +114,14 @@ src/
 อยู่ใน:
 
 ```txt
-src/server/models
+prisma/schema.prisma
 ```
 
 หน้าที่:
 - schema
 - database structure
 - entity definition
+- ใช้ Prisma เป็น single source of truth
 
 ---
 
@@ -267,15 +265,16 @@ Shadow:
 Form Location:
 
 ```txt
-components/forms/
+app/[page]/_components/   ← page-specific form
+components/               ← shared form เท่านั้น
 ```
 
 ตัวอย่าง:
 
 ```txt
-login-form.tsx
-product-form.tsx
-customer-form.tsx
+app/login/_components/login-form.tsx
+app/products/_components/product-form.tsx
+app/customers/_components/customer-form.tsx
 ```
 
 ---
@@ -470,12 +469,18 @@ Components:
 Hooks:
 - useSomething
 
+Database / Prisma Schema:
+- Table names: `tbl_snake_case` (e.g., `tbl_user_account`)
+- Field names: `snake_case` (e.g., `user_id`, `created_at`)
+
 Examples:
 
 ```txt
 product-form.tsx
 use-product.ts
 ProductTable.tsx
+tbl_product
+product_id
 ```
 
 ---
@@ -489,6 +494,7 @@ ProductTable.tsx
 - แยก service layer
 - validate ทุก input
 - ใช้ TypeScript strict mode
+- ถ้าไม่ใช่ Sharing UI ให้สร้าง component ไว้ภายใต้ `_components` ของ page นั้นๆ
 
 ---
 
@@ -512,6 +518,7 @@ Protected Routes:
 - products
 - orders
 - customers
+- home/panel
 
 Rules:
 - check auth ใน middleware
