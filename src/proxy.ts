@@ -15,7 +15,7 @@ import type { NextRequest } from "next/server"
 // ถ้าเพิ่ม route สาธารณะ ให้เพิ่มที่นี่ เช่น "/register", "/forgot-password"
 const PUBLIC_PATHS = ["/login"]
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   // อ่าน session token จาก HttpOnly Cookie
   const token = request.cookies.get("session_token")?.value
 

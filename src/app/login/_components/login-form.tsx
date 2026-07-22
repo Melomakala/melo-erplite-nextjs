@@ -6,9 +6,10 @@ import { loginSchema, LoginInput } from "@/server/validations/auth.validation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Lock, User, Loader2 } from "lucide-react";
+import { Lock, User, Loader2, TriangleAlert } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
@@ -40,7 +41,14 @@ export function LoginForm() {
       }
       router.push("/");
     } catch (error) {
-      console.error(error);
+      toast(<p className="flex items-center gap-2 text-red-500 font-medium">
+        <TriangleAlert className="w-4 h-4" />
+        {error instanceof Error ? error.message : "Something went wrong"}
+      </p>,
+        {
+          position: "bottom-center",
+          duration: 4000,
+        });
     } finally {
       setIsLoading(false);
     }
