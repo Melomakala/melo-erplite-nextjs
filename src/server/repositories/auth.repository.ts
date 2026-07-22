@@ -17,12 +17,6 @@ export const authRepository = {
         });
     },
 
-    async findSessionById(session_id: string) {
-        return await prisma.session.findUnique({
-            where: { session_id },
-        });
-    },
-
     async deleteSession(session_token: string) {
         return await prisma.session.delete({
             where: { session_token: session_token },

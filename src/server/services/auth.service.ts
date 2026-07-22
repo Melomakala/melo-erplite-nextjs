@@ -33,11 +33,8 @@ export const authService = {
 
         return {
             session_token,
-            expires_at,
             user: {
                 user_id: user.user_id,
-                username: user.username,
-                role: user.role,
             }
         };
     },

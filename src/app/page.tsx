@@ -12,7 +12,6 @@ import { modules } from "@/constants/modules";
 export default function Home() {
   const currentHour = new Date().getHours();
   const greeting = currentHour < 12 ? "Good Morning" : currentHour < 18 ? "Good Afternoon" : "Good Evening";
-
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background p-6 font-sans">
       <div className="max-w-4xl w-full">

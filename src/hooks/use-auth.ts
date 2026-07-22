@@ -1,11 +1,11 @@
-import { useState } from "react";
+
 import { useRouter } from "next/navigation";
 import { LoginInput } from "@/server/validations/auth.validation";
+import { useAuthStore } from "@/stores/auth-store";
 
 export function useAuth() {
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
     const router = useRouter();
-
+    const { setAuth, clearAuth } = useAuthStore();
     const login = async (data: LoginInput) => {
         try {
             const response = await fetch("/api/auth/login", {
@@ -19,7 +19,10 @@ export function useAuth() {
             if (!result.success) {
                 throw new Error(result.message);
             }
-            setIsLoggedIn(true);
+            setAuth({ user_id: result.data.user.user_id });
+            // ✅ อ่านค่ากลับจาก Zustand store โดยตรง (ไม่ใช้ closure)
+            const storeState = useAuthStore.getState();
+            console.log("[useAuth] user_id from Zustand:", storeState.user?.user_id);
             router.push("/");
         } catch (error) {
             throw error;
@@ -35,7 +38,7 @@ export function useAuth() {
             if (!result.success) {
                 throw new Error(result.message);
             }
-            setIsLoggedIn(false);
+            clearAuth();
             router.push("/login");
         } catch (error) {
             throw error;
@@ -43,7 +46,6 @@ export function useAuth() {
     };
 
     return {
-        isLoggedIn,
         login,
         logout,
     };
