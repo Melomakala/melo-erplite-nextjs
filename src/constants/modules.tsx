@@ -1,8 +1,8 @@
 import {
-  LayoutDashboard,
   Package,
   ShoppingCart,
   Users,
+  ChartNoAxesCombined,
   type LucideIcon,
 } from "lucide-react";
 
@@ -21,7 +21,7 @@ export const modules: ModuleItem[] = [
     title: "Dashboard",
     description: "Overview & Analytics",
     href: "/dashboard",
-    icon: LayoutDashboard,
+    icon: ChartNoAxesCombined,
     color: "bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-900/50",
   },
   {

@@ -7,6 +7,12 @@ export const authRepository = {
         });
     },
 
+    async findSessionByToken(session_token: string) {
+        return await prisma.session.findUnique({
+            where: { session_token: session_token },
+        });
+    },
+
     async createSession(data: { user_id: string; session_token: string; expires_at: Date; }) {
         return await prisma.session.create({
             data: {

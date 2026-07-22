@@ -1,20 +1,23 @@
 import { NextResponse } from "next/server";
 import { profileService } from "@/server/services/profile.service";
+import { cookies } from "next/headers";
 
 export async function GET(req: Request) {
     try {
-        const { searchParams } = new URL(req.url);
-        const user_id = searchParams.get("user_id");
-        if (!user_id) {
+        const cookieStore = await cookies();
+        const sessionToken = cookieStore.get("session_token")?.value;
+
+        if (!sessionToken) {
             return NextResponse.json({
                 success: false,
-                message: "User ID is required",
-            }, { status: 400 });
+                message: "Unauthorized",
+            }, { status: 401 });
         }
-        const profile = await profileService.getProfile(user_id);
+        const result = await profileService.getProfile(sessionToken);
         return NextResponse.json({
             success: true,
-            data: profile,
+            message: "Profile fetched successfully",
+            data: result,
         });
     } catch (error) {
         const message = error instanceof Error ? error.message : "Internal server error";

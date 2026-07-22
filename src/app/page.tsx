@@ -1,3 +1,4 @@
+"use client"
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,8 +9,11 @@ import {
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LogoutButton } from "@/components/logout-button";
 import { modules } from "@/constants/modules";
+import { useProfile } from "@/hooks/use-profile";
+
 
 export default function Home() {
+  const { data } = useProfile();
   const currentHour = new Date().getHours();
   const greeting = currentHour < 12 ? "Good Morning" : currentHour < 18 ? "Good Afternoon" : "Good Evening";
   return (
@@ -29,7 +33,7 @@ export default function Home() {
               </div>
             </div>
             <h2 className="text-4xl font-bold text-foreground">
-              {greeting}, Admin
+              {greeting}, {data?.name || "Loading..."}
             </h2>
             <p className="text-muted-foreground mt-2 text-lg">
               Select a workspace module to begin your operations.

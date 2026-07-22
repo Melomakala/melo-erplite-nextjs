@@ -4,6 +4,12 @@ export const profileRepository = {
     async getProfile(user_id: string) {
         return await prisma.user.findUnique({
             where: { user_id },
+            select: {
+                user_id: true,
+                username: true,
+                name: true,
+                role: true,
+            },
         });
     },
 
