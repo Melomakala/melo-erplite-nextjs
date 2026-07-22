@@ -8,12 +8,15 @@ export const authService = {
     async login(input: LoginInput) {
         const user = await authRepository.findUserByUsername(input.username);
         if (!user) {
-            throw new CustomError("User not found", 404);
+            throw new CustomError("Invalid username or password", 404);
         }
         const isPasswordValid = await bcrypt.compare(input.password, user.password);
         if (!isPasswordValid) {
-            throw new CustomError("Invalid password", 401);
+            throw new CustomError("Invalid username or password", 401);
         }
+        //delete old session if exists
+        await authRepository.deleteSessionByUser(user.user_id);
+
         const session_token = randomBytes(32).toString("hex");
         const expires_at = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
         await authRepository.createSession({

@@ -4,14 +4,13 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import {
-  LogOut,
   ChevronLeft,
   ChevronRight,
   LayoutGrid,
-
 } from "lucide-react"
 import { useState } from "react"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { LogoutButton } from "@/components/logout-button"
 import { navItems } from "@/constants/modules"
 
 export function NavSidebar() {
@@ -135,23 +134,13 @@ export function NavSidebar() {
           )}
         />
 
-        <Link
-          href="/login"
+        <LogoutButton
+          collapsed={collapsed}
           className={cn(
-            "flex items-center w-full transition-all duration-200 rounded-md hover:bg-destructive/10 hover:text-destructive group relative text-sidebar-foreground/60",
+            "w-full transition-all duration-200 rounded-md hover:bg-destructive/10 hover:text-destructive text-sidebar-foreground/60 font-normal h-auto justify-start",
             collapsed ? "justify-center h-11" : "gap-3 px-3 py-2.5"
           )}
-        >
-          <LogOut className="w-5 h-5 shrink-0" />
-          {!collapsed && (
-            <span className="text-sm font-medium animate-in fade-in duration-300">Logout</span>
-          )}
-          {collapsed && (
-            <div className="absolute left-full ml-4 px-2 py-1 bg-destructive text-destructive-foreground text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 shadow-xl hidden group-hover:block">
-              Logout
-            </div>
-          )}
-        </Link>
+        />
       </div>
     </aside>
   )

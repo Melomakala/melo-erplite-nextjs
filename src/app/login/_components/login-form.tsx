@@ -10,10 +10,12 @@ import { Lock, User, Loader2, TriangleAlert } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/use-auth";
 
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { login } = useAuth();
 
   const { register, handleSubmit, formState: { errors }, } = useForm<LoginInput>(
     {
@@ -28,18 +30,7 @@ export function LoginForm() {
   const onSubmit = async (data: LoginInput) => {
     setIsLoading(true);
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-      const result = await response.json();
-      if (!result.success) {
-        throw new Error(result.message);
-      }
-      router.push("/");
+      await login(data);
     } catch (error) {
       toast(<p className="flex items-center gap-2 text-red-500 font-medium">
         <TriangleAlert className="w-4 h-4" />

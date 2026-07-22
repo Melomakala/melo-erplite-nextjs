@@ -7,7 +7,7 @@ export const authRepository = {
         });
     },
 
-    async createSession(data: any) {
+    async createSession(data: { user_id: string; session_token: string; expires_at: Date; }) {
         return await prisma.session.create({
             data: {
                 user_id: data.user_id,
@@ -23,9 +23,15 @@ export const authRepository = {
         });
     },
 
-    async deleteSession(session_id: string) {
+    async deleteSession(session_token: string) {
         return await prisma.session.delete({
-            where: { session_id },
+            where: { session_token: session_token },
+        });
+    },
+
+    async deleteSessionByUser(user_id: string) {
+        return await prisma.session.deleteMany({
+            where: { user_id: user_id },
         });
     },
 }

@@ -3,10 +3,10 @@ import { Button } from "@/components/ui/button";
 import {
   ShieldCheck,
   Clock,
-  LogOut,
   Settings,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { LogoutButton } from "@/components/logout-button";
 import { modules } from "@/constants/modules";
 
 export default function Home() {
@@ -87,15 +87,7 @@ export default function Home() {
 
           <div className="flex items-center gap-3 w-full md:w-auto">
             <ThemeToggle className="h-12 w-12 bg-slate-200/70 dark:bg-white/10 border-slate-300 dark:border-white/20 text-slate-700 dark:text-white hover:bg-slate-300/70 dark:hover:bg-white/20 hover:text-slate-900 dark:hover:text-white" />
-            <Link href="/login">
-              <Button
-                variant="ghost"
-                className="h-12 px-6 text-slate-700 dark:text-white hover:bg-slate-200/70 dark:hover:bg-white/10 rounded-md font-bold flex gap-2"
-              >
-                <LogOut className="w-5 h-5" />
-                Logout
-              </Button>
-            </Link>
+            <LogoutButton className="h-12 px-6 text-slate-700 dark:text-white hover:bg-slate-200/70 dark:hover:bg-white/10 rounded-md font-bold flex gap-2" />
             <Link href="/settings">
               <Button className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold h-12 w-12 p-0 rounded-md transition-all">
                 <Settings className="w-6 h-6" />
