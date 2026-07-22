@@ -1,57 +1,22 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { 
-  LayoutDashboard, 
-  Package, 
-  ShoppingCart, 
-  Users, 
-  Settings,
+import {
   ShieldCheck,
   Clock,
-  LogOut
+  LogOut,
+  Settings,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
-
+import { modules } from "@/constants/modules";
 
 export default function Home() {
   const currentHour = new Date().getHours();
   const greeting = currentHour < 12 ? "Good Morning" : currentHour < 18 ? "Good Afternoon" : "Good Evening";
 
-  const modules = [
-    {
-      title: "Dashboard",
-      description: "Overview & Analytics",
-      icon: <LayoutDashboard className="w-6 h-6" />,
-      href: "/dashboard",
-      color: "bg-blue-50 text-blue-600 border-blue-100",
-    },
-    {
-      title: "Products",
-      description: "Inventory Management",
-      icon: <Package className="w-6 h-6" />,
-      href: "/products",
-      color: "bg-emerald-50 text-emerald-600 border-emerald-100",
-    },
-    {
-      title: "Orders",
-      description: "Sales & Fulfillment",
-      icon: <ShoppingCart className="w-6 h-6" />,
-      href: "/orders",
-      color: "bg-orange-50 text-orange-600 border-orange-100",
-    },
-    {
-      title: "Customers",
-      description: "CRM & Contacts",
-      icon: <Users className="w-6 h-6" />,
-      href: "/customers",
-      color: "bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800",
-    },
-  ];
-
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background p-6 font-sans">
       <div className="max-w-4xl w-full">
-        
+
         {/* Header */}
         <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
@@ -71,7 +36,7 @@ export default function Home() {
               Select a workspace module to begin your operations.
             </p>
           </div>
-          
+
           <div className="flex items-center gap-4 bg-card p-4 rounded-lg border border-border shadow-sm self-start md:self-auto">
             <div className="p-2 bg-muted rounded-lg">
               <Clock className="w-5 h-5 text-muted-foreground" />
@@ -87,22 +52,25 @@ export default function Home() {
 
         {/* Module Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 transition-all duration-500">
-          {modules.map((module) => (
-            <Link key={module.title} href={module.href}>
-              <div className="group relative bg-card p-8 rounded-lg border border-border shadow-sm hover:shadow-xl hover:border-accent transition-all duration-300 overflow-hidden cursor-pointer">
-                <div className="relative z-10">
-                  <div className={`w-14 h-14 rounded-lg ${module.color} border flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
-                    {module.icon}
+          {modules.map((module) => {
+            const Icon = module.icon;
+            return (
+              <Link key={module.title} href={module.href}>
+                <div className="group relative bg-card p-8 rounded-lg border border-border shadow-sm hover:shadow-xl hover:border-accent transition-all duration-300 overflow-hidden cursor-pointer">
+                  <div className="relative z-10">
+                    <div className={`w-14 h-14 rounded-lg ${module.color} border flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
+                      <Icon className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-xl font-bold text-foreground mb-1">{module.title}</h3>
+                    <p className="text-muted-foreground">{module.description}</p>
                   </div>
-                  <h3 className="text-xl font-bold text-foreground mb-1">{module.title}</h3>
-                  <p className="text-muted-foreground">{module.description}</p>
+                  <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
+                    <Icon className="w-24 h-24" />
+                  </div>
                 </div>
-                <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
-                  {module.icon}
-                </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
 
         {/* Action Bar */}
@@ -116,13 +84,13 @@ export default function Home() {
               <p className="text-slate-400 text-sm">Verified Administrative Session</p>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-3 w-full md:w-auto">
             <ThemeToggle className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white" />
             <Link href="/login">
 
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 className="h-12 px-6 text-white hover:bg-white/10 rounded-md font-bold flex gap-2"
               >
                 <LogOut className="w-5 h-5" />

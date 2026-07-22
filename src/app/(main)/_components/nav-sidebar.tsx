@@ -4,43 +4,15 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import {
-  LayoutDashboard,
-  ShoppingCart,
-  Users,
-  Package,
-  Settings,
   LogOut,
   ChevronLeft,
   ChevronRight,
   LayoutGrid,
-  Home
+
 } from "lucide-react"
 import { useState } from "react"
 import { ThemeToggle } from "@/components/theme-toggle"
-
-
-const navItems = [
-  {
-    title: "Dashboard",
-    href: "/dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    title: "Orders",
-    href: "/orders",
-    icon: ShoppingCart,
-  },
-  {
-    title: "Customers",
-    href: "/customers",
-    icon: Users,
-  },
-  {
-    title: "Products",
-    href: "/products",
-    icon: Package,
-  },
-]
+import { navItems } from "@/constants/modules"
 
 export function NavSidebar() {
   const pathname = usePathname()
