@@ -21,52 +21,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useGetCategories } from "@/hooks/use-product";
 
-// ─── Schema ───────────────────────────────────────────────────────────────────
-
-const productFormSchema = z.object({
-  name: z.string().min(1, "Product name is required"),
-  category: z.string().min(1, "Category is required"),
-  price: z.coerce.number().min(0, "Price must be 0 or more"),
-  stock: z.coerce.number().int().min(0, "Stock must be 0 or more"),
-  status: z.enum(["active", "inactive"]),
-});
-
-export type ProductFormValues = z.infer<typeof productFormSchema>;
-
-// Raw form field values (before coercion — price/stock can be empty string in input)
-type ProductFormInput = {
-  name: string;
-  category: string;
-  price: string | number;
-  stock: string | number;
-  status: "active" | "inactive";
-};
-
+import { productFormSchema, type ProductFormValues } from "@/server/validations/product.validation";
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 export interface ProductDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   /** Pass a product to edit; undefined = create mode */
-  initialValues?: ProductFormValues & { id?: number };
+  initialValues?: ProductFormValues & { id?: string | number };
   onSubmit: (values: ProductFormValues) => void;
 }
 
-const CATEGORY_OPTIONS = [
-  "Computer",
-  "Smartphone",
-  "Headphones",
-  "Tablet",
-  "Smart Watch",
-  "Accessory",
-  "Monitor",
-  "Other",
-];
-
 const DEFAULT_VALUES: ProductFormValues = {
   name: "",
-  category: "",
+  category_id: "",
   price: 0,
   stock: 0,
   status: "active",
@@ -81,7 +51,7 @@ export default function ProductFormDialog({
   onSubmit,
 }: ProductDialogProps) {
   const isEditing = !!initialValues?.id;
-
+  const { data: categories } = useGetCategories();
   const {
     register,
     handleSubmit,
@@ -89,10 +59,7 @@ export default function ProductFormDialog({
     setValue,
     watch,
     formState: { errors },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } = useForm<ProductFormValues, unknown, ProductFormValues>({
-    // Cast needed: zodResolver with z.coerce produces `unknown` input types
-    // which conflict with react-hook-form's TFieldValues constraint.
     resolver: zodResolver(productFormSchema) as any,
     defaultValues: DEFAULT_VALUES,
   });
@@ -104,12 +71,12 @@ export default function ProductFormDialog({
     }
   }, [open, initialValues, reset]);
 
-  function handleFormSubmit(values: ProductFormValues) {
-    onSubmit(values);
+  function handleFormSubmit(data: ProductFormValues) {
+    onSubmit(data)
     onOpenChange(false);
   }
 
-  const categoryValue = watch("category");
+  const categoryValue = watch("category_id");
   const statusValue = watch("status");
 
   return (
@@ -125,7 +92,7 @@ export default function ProductFormDialog({
             <Label htmlFor="product-name">Product Name</Label>
             <Input
               id="product-name"
-              placeholder='e.g. MacBook Pro 14"'
+              placeholder='Product name'
               {...register("name")}
             />
             {errors.name && (
@@ -138,21 +105,21 @@ export default function ProductFormDialog({
             <Label htmlFor="product-category">Category</Label>
             <Select
               value={categoryValue}
-              onValueChange={(val) => setValue("category", val, { shouldValidate: true })}
+              onValueChange={(val) => setValue("category_id", val, { shouldValidate: true })}
             >
               <SelectTrigger id="product-category">
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
               <SelectContent>
-                {CATEGORY_OPTIONS.map((cat) => (
-                  <SelectItem key={cat} value={cat}>
-                    {cat}
+                {categories?.map((cat) => (
+                  <SelectItem key={cat.category_id} value={cat.category_id}>
+                    {cat.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            {errors.category && (
-              <p className="text-xs text-destructive">{errors.category.message}</p>
+            {errors.category_id && (
+              <p className="text-xs text-destructive">{errors.category_id.message}</p>
             )}
           </div>
 

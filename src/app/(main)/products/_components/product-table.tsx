@@ -4,32 +4,16 @@ import { useState, useEffect } from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { ProductFormValues } from "./product-form-dialog";
 import type { CategoryFilter, StatusFilter } from "./product-filters";
+import { type Product, useGetProducts } from "@/hooks/use-product";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+export type { Product };
 
-export interface Product extends ProductFormValues {
-  id: number;
-}
-
-// ─── Dummy Data ───────────────────────────────────────────────────────────────
-
-const DUMMY_PRODUCTS: Product[] = [
-  { id: 1, name: "MacBook Pro 14\"", category: "Computer", price: 69900, stock: 12, status: "active" },
-  { id: 2, name: "iPhone 15 Pro", category: "Smartphone", price: 41900, stock: 34, status: "active" },
-  { id: 3, name: "AirPods Pro 2", category: "Headphones", price: 9490, stock: 0, status: "inactive" },
-  { id: 4, name: "iPad Air M2", category: "Tablet", price: 21900, stock: 8, status: "active" },
-  { id: 5, name: "Apple Watch S9", category: "Smart Watch", price: 15900, stock: 5, status: "active" },
-  { id: 6, name: "Magic Keyboard", category: "Accessory", price: 4490, stock: 0, status: "inactive" },
-  { id: 7, name: "Studio Display", category: "Monitor", price: 64900, stock: 3, status: "active" },
-];
-
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 10;
 
 // ─── Status Badge ─────────────────────────────────────────────────────────────
 
-function StatusBadge({ status }: { status: "active" | "inactive" }) {
+function StatusBadge({ status }: { status: "active" | "inactive" | string }) {
   if (status === "active") {
     return (
       <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
@@ -49,7 +33,7 @@ function StatusBadge({ status }: { status: "active" | "inactive" }) {
 function TableSkeleton() {
   return (
     <>
-      {Array.from({ length: PAGE_SIZE }).map((_, i) => (
+      {Array.from({ length: 5 }).map((_, i) => (
         <tr key={i} className="border-b border-border last:border-0">
           {Array.from({ length: 7 }).map((_, j) => (
             <td key={j} className="px-4 py-3">
@@ -65,6 +49,7 @@ function TableSkeleton() {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 interface ProductTableProps {
+  products?: Product[];
   searchQuery?: string;
   categoryFilter?: CategoryFilter;
   statusFilter?: StatusFilter;
@@ -73,37 +58,40 @@ interface ProductTableProps {
 }
 
 export default function ProductTable({
+  products: externalProducts,
   searchQuery = "",
   categoryFilter = "all",
   statusFilter = "all",
-  isLoading = false,
+  isLoading: externalIsLoading,
   onEdit,
 }: ProductTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Reset to page 1 whenever any filter or search changes
+  // Fetch from DB if products prop is not passed
+  const { data: fetchedProducts = [], isLoading: isFetching } = useGetProducts();
+
+  const products = externalProducts ?? fetchedProducts;
+  const isLoading = externalIsLoading ?? isFetching;
+
+  // Reset to page 1 whenever filter or search changes
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, categoryFilter, statusFilter]);
 
-  const filtered = DUMMY_PRODUCTS.filter((p) => {
+  const filtered = products.filter((p) => {
     const matchesSearch =
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.category.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = categoryFilter === "all" || p.category === categoryFilter;
+      p.category?.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory =
+      categoryFilter === "all" ||
+      p.category_id === categoryFilter ||
+      p.category?.name === categoryFilter;
     const matchesStatus = statusFilter === "all" || p.status === statusFilter;
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
   const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
-
-  const formatPrice = (price: number) =>
-    new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "THB",
-      minimumFractionDigits: 0,
-    }).format(price);
 
   return (
     <div className="rounded-lg border border-border bg-card shadow-sm overflow-hidden">
@@ -112,7 +100,7 @@ export default function ProductTable({
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border bg-muted/40">
-              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider w-12">#</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider w-12">ID</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Product Name</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Category</th>
               <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">Price</th>
@@ -133,16 +121,16 @@ export default function ProductTable({
             ) : (
               paginated.map((product, index) => (
                 <tr
-                  key={product.id}
+                  key={product.product_id}
                   className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors"
                 >
                   <td className="px-4 py-3 text-muted-foreground">
-                    {(currentPage - 1) * PAGE_SIZE + index + 1}
+                    {product.product_id}
                   </td>
                   <td className="px-4 py-3 font-medium text-foreground">{product.name}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{product.category}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{product.category?.name || "-"}</td>
                   <td className="px-4 py-3 text-right text-foreground tabular-nums">
-                    {formatPrice(product.price)}
+                    THB {product.price}
                   </td>
                   <td className="px-4 py-3 text-right text-foreground tabular-nums">
                     {product.stock}
@@ -179,7 +167,7 @@ export default function ProductTable({
       </div>
 
       {/* Pagination */}
-      {!isLoading && totalPages > 1 && (
+      {!isLoading && filtered.length > 0 && totalPages > 1 && (
         <div className="flex items-center justify-between px-4 py-3 border-t border-border bg-muted/20">
           <p className="text-xs text-muted-foreground">
             Showing {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, filtered.length)} of {filtered.length} results

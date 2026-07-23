@@ -9,22 +9,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useGetCategories } from "@/hooks/use-product";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-export const CATEGORY_OPTIONS = [
-  "Computer",
-  "Smartphone",
-  "Headphones",
-  "Tablet",
-  "Smart Watch",
-  "Accessory",
-  "Monitor",
-  "Other",
-] as const;
-
 export type StatusFilter = "all" | "active" | "inactive";
-export type CategoryFilter = (typeof CATEGORY_OPTIONS)[number] | "all";
+export type CategoryFilter = string;
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -48,6 +38,8 @@ const DEFAULT_FILTERS: ProductFiltersState = {
 export default function ProductFilters({ values, onChange }: ProductFiltersProps) {
   const isFiltered = values.category !== "all" || values.status !== "all";
 
+  const { data: categories, isLoading, isError } = useGetCategories();
+
   function handleCategoryChange(val: string) {
     onChange({ ...values, category: val as CategoryFilter });
   }
@@ -69,9 +61,9 @@ export default function ProductFilters({ values, onChange }: ProductFiltersProps
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">All Categories</SelectItem>
-          {CATEGORY_OPTIONS.map((cat) => (
-            <SelectItem key={cat} value={cat}>
-              {cat}
+          {categories?.map((cat) => (
+            <SelectItem key={cat.category_id} value={cat.name}>
+              {cat.name}
             </SelectItem>
           ))}
         </SelectContent>

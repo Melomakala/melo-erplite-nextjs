@@ -21,9 +21,10 @@ export async function GET(req: Request) {
         });
     } catch (error) {
         const message = error instanceof Error ? error.message : "Internal server error";
-        return NextResponse.json({
-            success: false,
-            message,
-        }, { status: 500 });
+        const response = NextResponse.json({ success: false, message }, { status: 401 });
+
+        // เคลียร์ Cookie ลบทิ้งออกจากเบราว์เซอร์
+        response.cookies.set("session_token", "", { expires: new Date(0), path: "/" });
+        return response;
     }
 }

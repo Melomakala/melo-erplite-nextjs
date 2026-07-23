@@ -1,4 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
+import { useAuthStore } from "@/stores/auth-store";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 interface Profile {
   user_id: string;
@@ -8,7 +11,7 @@ interface Profile {
 }
 
 async function fetchProfile(): Promise<Profile> {
-  const res = await fetch(`/api/profile`);
+  const res = await fetch(`/api/profile/getProfile`);
   const result = await res.json();
   if (!result.success) {
     throw new Error(result.message);
@@ -17,9 +20,22 @@ async function fetchProfile(): Promise<Profile> {
 }
 
 export function useProfile() {
-  return useQuery({
+  const { clearAuth } = useAuthStore();
+  const router = useRouter();
+
+  const query = useQuery({
     queryKey: ["profile"],
     queryFn: () => fetchProfile(),
     staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: false,
   });
+
+  useEffect(() => {
+    if (query.isError) {
+      clearAuth();
+      router.push("/login");
+    }
+  }, [query.isError, router]);
+
+  return query;
 }

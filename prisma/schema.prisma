@@ -30,3 +30,32 @@ model Session {
 
   @@map("tbl_user_session")
 }
+
+model Category {
+  category_id    String   @id @default(cuid())
+  name          String
+  description   String
+  create_by     String
+  update_by     String?  @default("")
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+  products      Product[]
+
+  @@map("tbl_product_category")
+}
+
+model Product {
+  product_id    String   @id @default(cuid())
+  name          String
+  category_id   String
+  category      Category @relation(fields: [category_id], references: [category_id])
+  price         Int @default(0)
+  stock         Int @default(0)
+  status        String
+  create_by     String
+  update_by     String?  @default("")
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  @@map("tbl_product")
+}

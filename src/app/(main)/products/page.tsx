@@ -4,7 +4,9 @@ import { useState, useCallback } from "react";
 import ProductToolbar from "./_components/product-toolbar";
 import { type ProductFiltersState } from "./_components/product-filters";
 import ProductTable, { type Product } from "./_components/product-table";
-import ProductFormDialog, { type ProductFormValues } from "./_components/product-form-dialog";
+import ProductFormDialog from "./_components/product-form-dialog";
+import { type ProductFormValues } from "@/server/validations/product.validation";
+import { useCreateProduct, useGetProducts } from "@/hooks/use-product";
 
 const DEFAULT_FILTERS: ProductFiltersState = {
   category: "all",
@@ -15,10 +17,13 @@ export default function ProductsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState<ProductFiltersState>(DEFAULT_FILTERS);
 
+  const { data: products = [], isLoading } = useGetProducts();
+  const createProduct = useCreateProduct();
+
   // Dialog state
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<
-    (ProductFormValues & { id?: number }) | undefined
+    (ProductFormValues & { id?: string | number }) | undefined
   >(undefined);
 
   const handleSearch = useCallback((value: string) => {
@@ -31,17 +36,23 @@ export default function ProductsPage() {
   }
 
   function handleClickEdit(product: Product) {
-    setEditingProduct(product);
+    setEditingProduct({
+      id: product.product_id,
+      name: product.name,
+      category_id: product.category_id,
+      price: product.price,
+      stock: product.stock,
+      status: product.status,
+    });
     setDialogOpen(true);
   }
 
-  function handleFormSubmit(values: ProductFormValues) {
+  function handleFormSubmit(data: ProductFormValues) {
     if (editingProduct?.id) {
       // TODO: call update API
-      console.log("Update product", editingProduct.id, values);
+      console.log("Update product", data);
     } else {
-      // TODO: call create API
-      console.log("Create product", values);
+      createProduct.mutateAsync(data);
     }
   }
 
@@ -57,6 +68,8 @@ export default function ProductsPage() {
       />
 
       <ProductTable
+        products={products}
+        isLoading={isLoading}
         searchQuery={searchQuery}
         categoryFilter={filters.category}
         statusFilter={filters.status}
