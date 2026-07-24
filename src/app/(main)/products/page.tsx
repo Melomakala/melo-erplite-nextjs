@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useDebounce } from "@/hooks/use-debounce";
 import ProductToolbar from "./_components/product-toolbar";
 import { type ProductFiltersState } from "./_components/product-filters";
 import ProductTable, { type Product } from "./_components/product-table";
@@ -16,8 +17,19 @@ const DEFAULT_FILTERS: ProductFiltersState = {
 export default function ProductsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState<ProductFiltersState>(DEFAULT_FILTERS);
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const { data: products = [], isLoading } = useGetProducts();
+  // Debounce search 300ms — API จะยิงเฉพาะตอนที่ user หยุดพิมพ์
+  const debouncedSearch = useDebounce(searchQuery, 300);
+
+  const { data, isLoading } = useGetProducts({
+    page: currentPage,
+    limit: 10,
+    query: debouncedSearch || undefined,
+    category_id: filters.category !== "all" ? filters.category : undefined,
+    status: filters.status !== "all" ? (filters.status as "active" | "inactive") : undefined,
+  });
+
   const createProduct = useCreateProduct();
 
   // Dialog state
@@ -28,7 +40,13 @@ export default function ProductsPage() {
 
   const handleSearch = useCallback((value: string) => {
     setSearchQuery(value);
+    setCurrentPage(1); // reset to page 1 on new search
   }, []);
+
+  function handleFiltersChange(newFilters: ProductFiltersState) {
+    setFilters(newFilters);
+    setCurrentPage(1); // reset to page 1 on filter change
+  }
 
   function handleClickCreate() {
     setEditingProduct(undefined);
@@ -47,12 +65,12 @@ export default function ProductsPage() {
     setDialogOpen(true);
   }
 
-  function handleFormSubmit(data: ProductFormValues) {
+  function handleFormSubmit(formData: ProductFormValues) {
     if (editingProduct?.id) {
       // TODO: call update API
-      console.log("Update product", data);
+      console.log("Update product", formData);
     } else {
-      createProduct.mutateAsync(data);
+      createProduct.mutateAsync(formData);
     }
   }
 
@@ -64,15 +82,15 @@ export default function ProductsPage() {
         onSearch={handleSearch}
         onClickCreate={handleClickCreate}
         filters={filters}
-        onFiltersChange={setFilters}
+        onFiltersChange={handleFiltersChange}
       />
 
       <ProductTable
-        products={products}
+        products={data?.data}
+        pagination={data?.pagination}
         isLoading={isLoading}
-        searchQuery={searchQuery}
-        categoryFilter={filters.category}
-        statusFilter={filters.status}
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
         onEdit={handleClickEdit}
       />
 

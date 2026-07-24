@@ -9,3 +9,13 @@ export const productFormSchema = z.object({
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;
+
+export const paramGetProductSchema = z.object({
+  page: z.number().min(1, "Page must be 1 or more"),
+  limit: z.number().min(1, "Limit must be 1 or more"),
+  query: z.string().optional(),
+  category_id: z.string().optional(),
+  status: z.enum(["active", "inactive"]).optional(),
+});
+
+export type ParamGetProductValues = z.infer<typeof paramGetProductSchema>;

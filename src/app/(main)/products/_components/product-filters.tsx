@@ -62,7 +62,7 @@ export default function ProductFilters({ values, onChange }: ProductFiltersProps
         <SelectContent>
           <SelectItem value="all">All Categories</SelectItem>
           {categories?.map((cat) => (
-            <SelectItem key={cat.category_id} value={cat.name}>
+            <SelectItem key={cat.category_id} value={cat.category_id}>
               {cat.name}
             </SelectItem>
           ))}

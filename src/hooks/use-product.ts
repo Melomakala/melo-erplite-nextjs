@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { type ProductFormValues } from "@/server/validations/product.validation";
+import { type ProductFormValues, type ParamGetProductValues } from "@/server/validations/product.validation";
 
 export interface Category {
     category_id: string;
@@ -27,6 +27,24 @@ export interface Product {
     updated_at: string;
 }
 
+export interface GetProductsResponse {
+    data: Product[];
+    pagination: {
+        page: number;
+        limit: number;
+        total: number;
+        totalPages: number;
+    };
+    search: {
+        page: number;
+        limit: number;
+        query?: string;
+        category?: string;
+        status?: string;
+    }
+}
+
+
 async function fetchCategories(): Promise<Category[]> {
     const response = await fetch("/api/product/getCategory");
     if (!response.ok) {
@@ -44,19 +62,35 @@ export const useGetCategories = () => {
     });
 };
 
-async function fetchProducts(): Promise<Product[]> {
-    const response = await fetch("/api/product/getProduct");
+async function fetchProducts(params: ParamGetProductValues): Promise<GetProductsResponse> {
+    const searchParams = new URLSearchParams({
+        page: params.page.toString(),
+        limit: params.limit.toString(),
+    });
+    if (params.query) {
+        searchParams.set("query", params.query);
+    }
+    if (params.category_id) {
+        searchParams.set("category_id", params.category_id);
+    }
+    if (params.status) {
+        searchParams.set("status", params.status);
+    }
+
+    const response = await fetch(`/api/product/getProduct?${searchParams}`);
     if (!response.ok) {
         throw new Error("Failed to fetch products");
     }
-    const data = await response.json();
-    return data.data;
+    const result = await response.json();
+    return result.data;
 }
 
-export const useGetProducts = () => {
+export const useGetProducts = (params: ParamGetProductValues) => {
     return useQuery({
-        queryKey: ["products"],
-        queryFn: fetchProducts,
+        queryKey: ["products", params],
+        queryFn: () => fetchProducts(params),
+        staleTime: 30 * 1000, // 30 วิ ว่ะ
+        gcTime: 5 * 60 * 1000, // ลบหลังซะ หลังจากไม่มีคนไช้ 5 นาที
     });
 };
 
