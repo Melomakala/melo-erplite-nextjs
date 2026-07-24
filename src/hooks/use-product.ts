@@ -117,3 +117,54 @@ export const useCreateProduct = () => {
         },
     });
 };
+
+async function deleteProduct(productId: string) {
+    const response = await fetch("/api/product/deleteProduct", {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ product_id: productId }),
+    });
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to delete product");
+    }
+    return response.json();
+}
+
+export const useDeleteProduct = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: deleteProduct,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["products"] });
+        },
+    });
+};
+
+async function updateProduct(data: { product_id: string, body: ProductFormValues }) {
+    const response = await fetch("/api/product/updateProduct", {
+        method: "PUT",
+        body: JSON.stringify(data),
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
+    if (!response.ok) {
+        throw new Error("Failed to update product");
+    }
+    return response.json();
+};
+
+export const useUpdateProduct = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: updateProduct,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["products"] });
+        },
+    });
+}
+
+

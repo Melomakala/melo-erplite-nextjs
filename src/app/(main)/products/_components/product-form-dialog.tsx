@@ -81,7 +81,7 @@ export default function ProductFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[480px]">
+      <DialogContent aria-describedby={undefined} className="sm:max-w-[480px]">
         <DialogHeader>
           <DialogTitle>{isEditing ? "Edit Product" : "Create Product"}</DialogTitle>
         </DialogHeader>

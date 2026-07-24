@@ -59,3 +59,20 @@ model Product {
 
   @@map("tbl_product")
 }
+
+model Customer {
+  customer_id    String   @id @default(cuid())
+  name          String
+  phone         String
+  email         String?
+  address       String?
+  status        String
+
+  create_by     String
+  update_by     String?  @default("")
+
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  @@map("tbl_customer")
+}

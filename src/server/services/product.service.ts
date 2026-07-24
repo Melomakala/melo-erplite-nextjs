@@ -28,4 +28,21 @@ export const productService = {
             }
         });
     },
+    async deleteProduct(session_token: string, product_id: string) {
+        const session = await getValidSession(session_token);
+        await productRepository.deleteProduct(product_id);
+        logger.info("deleteProduct", "Product deleted successfully", {
+            user_id: session.user_id,
+            product_id,
+        });
+    },
+
+    async updateProduct(session_token: string, data: { product_id: string, body: ProductFormValues }) {
+        const session = await getValidSession(session_token);
+        await productRepository.updateProduct(data.product_id, data.body, session.user_id);
+        logger.info("updateProduct", "Product updated successfully", {
+            user_id: session.user_id,
+            product_id: data.product_id,
+        });
+    }
 }

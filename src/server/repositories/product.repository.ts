@@ -71,4 +71,29 @@ export const productRepository = {
             }
         });
     },
+
+    async deleteProduct(product_id: string) {
+        return await prisma.product.delete({
+            where: {
+                product_id: product_id,
+            },
+        });
+    },
+
+    async updateProduct(product_id: string, product: ProductFormValues, user_id: string) {
+        return await prisma.product.update({
+            where: {
+                product_id: product_id,
+            },
+            data: {
+                name: product.name,
+                category_id: product.category_id,
+                price: toCents(product.price),
+                stock: product.stock,
+                status: product.status,
+                update_by: user_id,
+                updated_at: new Date(),
+            }
+        });
+    },
 }

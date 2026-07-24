@@ -3,22 +3,34 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { type Product } from "@/hooks/use-product";
 
-export type { Product };
+export interface Customer {
+  customer_id: string;
+  name: string;
+  phone: string;
+  email?: string | null;
+  address?: string | null;
+  status: "active" | "inactive" | "ACTIVE" | "INACTIVE" | string;
+  create_by?: string;
+  update_by?: string | null;
+  created_at?: string | Date;
+  updated_at?: string | Date;
+}
 
 // ─── Status Badge ─────────────────────────────────────────────────────────────
 
-function StatusBadge({ status }: { status: "active" | "inactive" | string }) {
-  if (status === "active") {
+function StatusBadge({ status }: { status: string }) {
+  const isAvailable = status.toLowerCase() === "active";
+
+  if (isAvailable) {
     return (
-      <span className="inline-flex items-center rounded-full bg-emerald-500 px-2.5 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
+      <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-700 dark:text-emerald-400 ring-1 ring-inset ring-emerald-600/20">
         Active
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-500 ring-1 ring-inset ring-slate-500/20">
+    <span className="inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 text-xs font-medium text-slate-500 dark:text-slate-400 ring-1 ring-inset ring-slate-500/20">
       Inactive
     </span>
   );
@@ -51,25 +63,25 @@ interface Pagination {
   totalPages: number;
 }
 
-interface ProductTableProps {
-  products?: Product[];
+interface CustomerTableProps {
+  customers?: Customer[];
   pagination?: Pagination;
   isLoading?: boolean;
   currentPage?: number;
   onPageChange?: (page: number) => void;
-  onEdit?: (product: Product) => void;
-  onDelete?: (product: Product) => void;
+  onEdit?: (customer: Customer) => void;
+  onDelete?: (customer: Customer) => void;
 }
 
-export default function ProductTable({
-  products = [],
+export default function CustomerTable({
+  customers = [],
   pagination,
   isLoading = false,
   currentPage = 1,
   onPageChange,
   onEdit,
   onDelete,
-}: ProductTableProps) {
+}: CustomerTableProps) {
   const totalPages = pagination?.totalPages ?? 1;
   const total = pagination?.total ?? 0;
   const pageSize = pagination?.limit ?? 10;
@@ -81,11 +93,11 @@ export default function ProductTable({
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border bg-muted/40">
-              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider w-12">ID</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Product Name</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Category</th>
-              <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">Price</th>
-              <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">Stock</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider w-16">ID</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Name</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Phone</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Email</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Address</th>
               <th className="px-4 py-3 text-center text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
               <th className="px-4 py-3 text-center text-xs font-medium text-muted-foreground uppercase tracking-wider">Actions</th>
             </tr>
@@ -93,31 +105,29 @@ export default function ProductTable({
           <tbody>
             {isLoading ? (
               <TableSkeleton />
-            ) : products.length === 0 ? (
+            ) : customers.length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-4 py-12 text-center text-muted-foreground text-sm">
-                  No products found.
+                  No customers found.
                 </td>
               </tr>
             ) : (
-              products.map((product) => (
+              customers.map((customer) => (
                 <tr
-                  key={product.product_id}
+                  key={customer.customer_id}
                   className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors"
                 >
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {product.product_id}
+                  <td className="px-4 py-3 text-muted-foreground font-mono text-xs">
+                    {customer.customer_id}
                   </td>
-                  <td className="px-4 py-3 font-medium text-foreground">{product.name}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{product.category?.name || "-"}</td>
-                  <td className="px-4 py-3 text-right text-foreground tabular-nums">
-                    THB {product.price.toLocaleString()}
-                  </td>
-                  <td className="px-4 py-3 text-right text-foreground tabular-nums">
-                    {product.stock}
+                  <td className="px-4 py-3 font-medium text-foreground">{customer.name}</td>
+                  <td className="px-4 py-3 text-muted-foreground tabular-nums">{customer.phone}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{customer.email || "-"}</td>
+                  <td className="px-4 py-3 text-muted-foreground truncate max-w-[200px]">
+                    {customer.address || "-"}
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <StatusBadge status={product.status} />
+                    <StatusBadge status={customer.status} />
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-center gap-1">
@@ -125,7 +135,7 @@ export default function ProductTable({
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                        onClick={() => onEdit?.(product)}
+                        onClick={() => onEdit?.(customer)}
                       >
                         <Pencil className="h-3.5 w-3.5" />
                         <span className="sr-only">Edit</span>
@@ -134,7 +144,7 @@ export default function ProductTable({
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                        onClick={() => onDelete?.(product)}
+                        onClick={() => onDelete?.(customer)}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                         <span className="sr-only">Delete</span>

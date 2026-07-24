@@ -6,8 +6,9 @@ import ProductToolbar from "./_components/product-toolbar";
 import { type ProductFiltersState } from "./_components/product-filters";
 import ProductTable, { type Product } from "./_components/product-table";
 import ProductFormDialog from "./_components/product-form-dialog";
+import ProductDeleteDialog from "./_components/product-delete-dialog";
 import { type ProductFormValues } from "@/server/validations/product.validation";
-import { useCreateProduct, useGetProducts } from "@/hooks/use-product";
+import { useCreateProduct, useGetProducts, useDeleteProduct, useUpdateProduct } from "@/hooks/use-product";
 
 const DEFAULT_FILTERS: ProductFiltersState = {
   category: "all",
@@ -31,12 +32,18 @@ export default function ProductsPage() {
   });
 
   const createProduct = useCreateProduct();
+  const deleteProduct = useDeleteProduct();
+  const updateProduct = useUpdateProduct();
 
-  // Dialog state
+  // Create/Edit Dialog state
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<
     (ProductFormValues & { id?: string | number }) | undefined
   >(undefined);
+
+  // Delete Dialog state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
 
   const handleSearch = useCallback((value: string) => {
     setSearchQuery(value);
@@ -65,12 +72,42 @@ export default function ProductsPage() {
     setDialogOpen(true);
   }
 
-  function handleFormSubmit(formData: ProductFormValues) {
+  function handleClickDelete(product: Product) {
+    setDeletingProduct(product);
+    setDeleteDialogOpen(true);
+  }
+
+  async function handleConfirmDelete() {
+    if (!deletingProduct) return;
+    try {
+      await deleteProduct.mutateAsync(deletingProduct.product_id);
+      setDeleteDialogOpen(false);
+      setDeletingProduct(null);
+    } catch (error) {
+      console.error("Delete product error:", error);
+      // Close modal on error or leave open for user feedback
+      setDeleteDialogOpen(false);
+      setDeletingProduct(null);
+    }
+  }
+
+  async function handleFormSubmit(formData: ProductFormValues) {
     if (editingProduct?.id) {
-      // TODO: call update API
-      console.log("Update product", formData);
+      try {
+        await updateProduct.mutateAsync({ product_id: editingProduct?.id.toString(), body: formData });
+        setDialogOpen(false);
+        setEditingProduct(undefined);
+      } catch (error) {
+        console.error("Update product error:", error);
+      }
     } else {
-      createProduct.mutateAsync(formData);
+      try {
+        await createProduct.mutateAsync(formData);
+        setDialogOpen(false);
+        setEditingProduct(undefined);
+      } catch (error) {
+        console.error("Create product error");
+      }
     }
   }
 
@@ -92,6 +129,7 @@ export default function ProductsPage() {
         currentPage={currentPage}
         onPageChange={setCurrentPage}
         onEdit={handleClickEdit}
+        onDelete={handleClickDelete}
       />
 
       <ProductFormDialog
@@ -99,6 +137,14 @@ export default function ProductsPage() {
         onOpenChange={setDialogOpen}
         initialValues={editingProduct}
         onSubmit={handleFormSubmit}
+      />
+
+      <ProductDeleteDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        product={deletingProduct}
+        onConfirm={handleConfirmDelete}
+        isLoading={deleteProduct.isPending}
       />
     </div>
   );
