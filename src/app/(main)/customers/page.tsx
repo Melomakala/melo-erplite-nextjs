@@ -90,7 +90,7 @@ export default function CustomersPage() {
   async function handleFormSubmit(formData: CustomerFormValues) {
     if (editingCustomer?.id) {
       try {
-        await updateCustomer.mutateAsync({ customer_id: editingCustomer.id, body: formData });
+        await updateCustomer.mutateAsync({ customer_id: editingCustomer.id.toString(), body: formData });
       } catch (error) {
         // TODO
         console.error("Update customer error:", error);
