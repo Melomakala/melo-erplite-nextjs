@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { type ProductFormValues } from "@/server/validations/product.validation";
+import { type ProductFormValues, type ParamGetProductValues } from "@/server/validations/product.validation";
 import { toCents, fromCents } from "@/lib/currency";
-import { type ParamGetProductValues } from "@/server/validations/product.validation"
 import { Prisma } from "@/generated/prisma";
 
 export const productRepository = {

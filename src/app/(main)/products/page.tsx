@@ -95,20 +95,18 @@ export default function ProductsPage() {
     if (editingProduct?.id) {
       try {
         await updateProduct.mutateAsync({ product_id: editingProduct?.id.toString(), body: formData });
-        setDialogOpen(false);
-        setEditingProduct(undefined);
       } catch (error) {
         console.error("Update product error:", error);
       }
     } else {
       try {
         await createProduct.mutateAsync(formData);
-        setDialogOpen(false);
-        setEditingProduct(undefined);
       } catch (error) {
         console.error("Create product error");
       }
     }
+    setDialogOpen(false);
+    setEditingProduct(undefined);
   }
 
   return (

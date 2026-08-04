@@ -8,6 +8,7 @@ import CustomerTable, { type Customer } from "./_components/customer-table";
 import CustomerFormDialog from "./_components/customer-form-dialog";
 import CustomerDeleteDialog from "./_components/customer-delete-dialog";
 import { type CustomerFormValues } from "@/server/validations/customer.validation";
+import { useCreateCustomer } from "@/hooks/use-customer"
 
 const DEFAULT_FILTERS: CustomerFiltersState = {
   status: "all",
@@ -44,6 +45,8 @@ export default function CustomersPage() {
   // Delete Dialog state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingCustomer, setDeletingCustomer] = useState<Customer | null>(null);
+
+  const createCustomer = useCreateCustomer();
 
   const handleSearch = useCallback((value: string) => {
     setSearchQuery(value);
@@ -90,8 +93,11 @@ export default function CustomersPage() {
       // TODO: เชื่อมต่อ API updateCustomer เมื่อพร้อม
       console.log("Update customer:", editingCustomer.id, formData);
     } else {
-      // TODO: เชื่อมต่อ API createCustomer เมื่อพร้อม
-      console.log("Create customer:", formData);
+      try {
+        await createCustomer.mutateAsync(formData);
+      } catch (error) {
+        console.error("Create customer error:", error);
+      }
     }
     setDialogOpen(false);
     setEditingCustomer(undefined);
