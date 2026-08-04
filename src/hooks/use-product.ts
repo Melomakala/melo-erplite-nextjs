@@ -127,8 +127,7 @@ async function deleteProduct(productId: string) {
         body: JSON.stringify({ product_id: productId }),
     });
     if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || "Failed to delete product");
+        throw new Error("Failed to delete product");
     }
     return response.json();
 }

@@ -51,5 +51,21 @@ export const customerRepository = {
                 customer_id: customer_id,
             },
         });
+    },
+    async updateCustomer(customer_id: string, customer: CustomerFormValues, user_id: string) {
+        return await prisma.customer.update({
+            where: {
+                customer_id: customer_id,
+            },
+            data: {
+                name: customer.name,
+                phone: customer.phone,
+                email: customer.email,
+                address: customer.address,
+                status: customer.status,
+                update_by: user_id,
+                updated_at: new Date(),
+            },
+        })
     }
 }

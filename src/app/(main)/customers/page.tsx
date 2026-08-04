@@ -8,28 +8,18 @@ import CustomerTable, { type Customer } from "./_components/customer-table";
 import CustomerFormDialog from "./_components/customer-form-dialog";
 import CustomerDeleteDialog from "./_components/customer-delete-dialog";
 import { type CustomerFormValues } from "@/server/validations/customer.validation";
-import { useCreateCustomer, useGetCustomer, useDeleteCustomer } from "@/hooks/use-customer"
+import { useCreateCustomer, useGetCustomer, useDeleteCustomer, useUpdateCustomer } from "@/hooks/use-customer"
 
 const DEFAULT_FILTERS: CustomerFiltersState = {
   status: "all",
 };
 
-interface CustomerApiResponse {
-  data: Customer[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
-}
 
 export default function CustomersPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState<CustomerFiltersState>(DEFAULT_FILTERS);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Debounce search 300ms — พร้อมสำหรับยิง API เมื่อเชื่อมต่อหลังบ้าน
   const debouncedSearch = useDebounce(searchQuery, 300);
 
   const { data, isLoading } = useGetCustomer({
@@ -52,6 +42,7 @@ export default function CustomersPage() {
   // hook
   const createCustomer = useCreateCustomer();
   const deleteCustomer = useDeleteCustomer();
+  const updateCustomer = useUpdateCustomer();
 
   const handleSearch = useCallback((value: string) => {
     setSearchQuery(value);
@@ -98,12 +89,17 @@ export default function CustomersPage() {
 
   async function handleFormSubmit(formData: CustomerFormValues) {
     if (editingCustomer?.id) {
-      // TODO: เชื่อมต่อ API updateCustomer เมื่อพร้อม
-      console.log("Update customer:", editingCustomer.id, formData);
+      try {
+        await updateCustomer.mutateAsync({ customer_id: editingCustomer.id, body: formData });
+      } catch (error) {
+        // TODO
+        console.error("Update customer error:", error);
+      }
     } else {
       try {
         await createCustomer.mutateAsync(formData);
       } catch (error) {
+        // TODO
         console.error("Create customer error:", error);
       }
     }

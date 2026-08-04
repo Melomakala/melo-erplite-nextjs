@@ -1,26 +1,21 @@
 import { NextResponse } from "next/server";
-import { productService } from "@/server/services/product.service";
 import { cookies } from "next/headers";
+import { customerService } from "@/server/services/customer.service";
 
-
-export async function POST(request: Request) {
+export async function PUT(request: Request) {
     try {
-        const body = await request.json();
         const cookieStore = await cookies();
         const session_token = cookieStore.get("session_token")?.value;
         if (!session_token) {
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
-        const result = await productService.createProduct(session_token, body);
-        return NextResponse.json({
-            success: true,
-            message: "Product created successfully",
-            data: result
-        }, { status: 200 });
+        const { customer_id, body } = await request.json();
+        const result = await customerService.updateCustomer(session_token, { customer_id, body });
+        return NextResponse.json({ success: true, data: result, message: "Customer updated successfully" });
     } catch (error) {
         if (error instanceof Error) {
             return NextResponse.json({ success: false, message: error.message }, { status: 500 });
         }
-        return NextResponse.json({ success: false, message: "Failed to create product" }, { status: 500 });
+        return NextResponse.json({ success: false, message: "Failed to update customer" }, { status: 500 });
     }
 }

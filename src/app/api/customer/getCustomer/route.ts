@@ -22,10 +22,9 @@ export async function GET(request: Request) {
             data: customers,
         }, { status: 200 });
     } catch (error) {
-        const message = error instanceof Error ? error.message : "Internal server error";
-        return NextResponse.json({
-            success: false,
-            message,
-        }, { status: 500 });
+        if (error instanceof Error) {
+            return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+        }
+        return NextResponse.json({ success: false, message: "Failed to fetch customers" }, { status: 500 });
     }
 }

@@ -93,12 +93,14 @@ export default function ProductsPage() {
       try {
         await updateProduct.mutateAsync({ product_id: editingProduct?.id.toString(), body: formData });
       } catch (error) {
+        // TODO
         console.error("Update product error:", error);
       }
     } else {
       try {
         await createProduct.mutateAsync(formData);
       } catch (error) {
+        // TODO
         console.error("Create product error");
       }
     }

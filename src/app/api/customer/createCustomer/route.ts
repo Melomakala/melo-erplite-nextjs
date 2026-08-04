@@ -16,10 +16,9 @@ export async function POST(request: Request) {
             message: "Customer created successfully",
         });
     } catch (error) {
-        const message = error instanceof Error ? error.message : "Internal server error";
-        return NextResponse.json({
-            success: false,
-            message
-        }, { status: 500 });
+        if (error instanceof Error) {
+            return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+        }
+        return NextResponse.json({ success: false, message: "Failed to create customer" }, { status: 500 });
     }
 } 

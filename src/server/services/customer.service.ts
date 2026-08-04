@@ -33,5 +33,13 @@ export const customerService = {
             user_id: session.user_id,
             customer_id,
         });
+    },
+    async updateCustomer(session_token: string, data: { customer_id: string, body: CustomerFormValues }) {
+        const session = await getValidSession(session_token);
+        await customerRepository.updateCustomer(data.customer_id, data.body, session.user_id);
+        logger.info("updateCustomer", "Customer updated successfully", {
+            user_id: session.user_id,
+            customer_id: data.customer_id,
+        });
     }
 }

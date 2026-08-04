@@ -81,3 +81,27 @@ export function useDeleteCustomer() {
         },
     });
 }
+
+async function updateCustomer(data: { customer_id: string, body: CustomerFormValues }) {
+    const response = await fetch("/api/customer/updateCustomer", {
+        method: "PUT",
+        body: JSON.stringify(data),
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
+    if (!response.ok) {
+        throw new Error("Failed to update customer");
+    }
+    return response.json();
+}
+
+export function useUpdateCustomer() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: updateCustomer,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["customers"] });
+        },
+    });
+}
