@@ -8,7 +8,7 @@ import CustomerTable, { type Customer } from "./_components/customer-table";
 import CustomerFormDialog from "./_components/customer-form-dialog";
 import CustomerDeleteDialog from "./_components/customer-delete-dialog";
 import { type CustomerFormValues } from "@/server/validations/customer.validation";
-import { useCreateCustomer } from "@/hooks/use-customer"
+import { useCreateCustomer, useGetCustomer } from "@/hooks/use-customer"
 
 const DEFAULT_FILTERS: CustomerFiltersState = {
   status: "all",
@@ -32,9 +32,12 @@ export default function CustomersPage() {
   // Debounce search 300ms — พร้อมสำหรับยิง API เมื่อเชื่อมต่อหลังบ้าน
   const debouncedSearch = useDebounce(searchQuery, 300);
 
-  // Placeholder state/data สำหรับรอรับ API hook (เช่น useGetCustomers)
-  const data: CustomerApiResponse | undefined = undefined;
-  const isLoading = false;
+  const { data, isLoading } = useGetCustomer({
+    page: currentPage,
+    limit: 10,
+    query: debouncedSearch || undefined,
+    status: filters.status !== "all" ? (filters.status as "active" | "inactive") : undefined,
+  });
 
   // Create/Edit Dialog state
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -115,8 +118,8 @@ export default function CustomersPage() {
       />
 
       <CustomerTable
-        customers={(data as CustomerApiResponse | undefined)?.data}
-        pagination={(data as CustomerApiResponse | undefined)?.pagination}
+        customers={data?.data}
+        pagination={data?.pagination}
         isLoading={isLoading}
         currentPage={currentPage}
         onPageChange={setCurrentPage}

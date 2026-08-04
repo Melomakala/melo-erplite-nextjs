@@ -11,6 +11,7 @@ export const productRepository = {
     async getProducts(params: ParamGetProductValues) {
         const { page, limit, query, category_id, status } = params;
         const where: Prisma.ProductWhereInput = {
+            // ลองแบบ เติมใน object
             ...(query && {
                 OR: [
                     {

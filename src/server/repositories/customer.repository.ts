@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { type CustomerFormValues, type ParamGetCustomerValues } from "../validations/customer.validation";
-
+import { Prisma } from "@/generated/prisma";
 export const customerRepository = {
     async createCustomer(customer: CustomerFormValues, user_id: string) {
         return await prisma.customer.create({
@@ -13,5 +13,36 @@ export const customerRepository = {
                 create_by: user_id,
             },
         });
+    },
+    async getCustomer(params: ParamGetCustomerValues) {
+        const { page, limit, query, status } = params;
+        const where: Prisma.CustomerWhereInput = {
+            ...(query && {
+                OR: [
+                    { name: { contains: query } },
+                    { phone: { contains: query } },
+                    { email: { contains: query } },
+                    { address: { contains: query } },
+                ],
+            }),
+            ...(status && { status }),
+        };
+        const [customer, totalPages] = await Promise.all([
+            prisma.customer.findMany({
+                where,
+                skip: (page - 1) * limit,
+                take: limit,
+            }),
+            prisma.customer.count({ where }),
+        ])
+        return {
+            data: customer,
+            pagination: {
+                page,
+                limit,
+                total: totalPages,
+                totalPages: Math.ceil(totalPages / limit),
+            }
+        };
     }
 }

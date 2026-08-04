@@ -1,7 +1,7 @@
 import { getValidSession } from "../helpers/session.helper";
 import { logger } from "../helpers/logger";
 import { customerRepository } from "../repositories/customer.repository";
-import { type CustomerFormValues } from "../validations/customer.validation";
+import { type CustomerFormValues, type ParamGetCustomerValues } from "../validations/customer.validation";
 
 export const customerService = {
     async createCustomer(session_token: string, data: CustomerFormValues) {
@@ -13,5 +13,17 @@ export const customerService = {
                 ...data,
             }
         });
+    },
+
+    async getCustomer(session_token: string, params: ParamGetCustomerValues) {
+        const session = await getValidSession(session_token);
+        const result = await customerRepository.getCustomer(params);
+        logger.info("getCustomer", "Customer fetched successfully", {
+            user_id: session.user_id,
+            data: {
+                ...params,
+            }
+        });
+        return result;
     }
 }

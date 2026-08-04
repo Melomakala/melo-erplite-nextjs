@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { type CustomerFormValues } from "@/server/validations/customer.validation"
+import { type CustomerFormValues, type ParamGetCustomerValues } from "@/server/validations/customer.validation"
 
 async function createCustomer(customer: CustomerFormValues) {
     const response = await fetch("/api/customer/createCustomer", {
@@ -23,5 +23,36 @@ export function useCreateCustomer() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["customers"] });
         },
+    });
+}
+
+async function getCustomer(params: ParamGetCustomerValues) {
+    const searchParams = new URLSearchParams({
+        page: params.page.toString(),
+        limit: params.limit.toString(),
+    });
+
+    if (params.query) {
+        searchParams.set("query", params.query);
+    }
+    if (params.status) {
+        searchParams.set("status", params.status);
+    }
+
+
+    const response = await fetch(`/api/customer/getCustomer?${searchParams}`);
+    if (!response.ok) {
+        throw new Error("Failed to fecth customer");
+    }
+    const result = await response.json();
+    return result.data;
+}
+
+export function useGetCustomer(params: ParamGetCustomerValues) {
+    return useQuery({
+        queryKey: ["customers", params],
+        queryFn: () => getCustomer(params),
+        staleTime: 30 * 1000, // 30 วิ ว่ะ
+        gcTime: 5 * 60 * 1000, // ลบหลังซะ หลังจากไม่มีคนไช้ 5 นาที
     });
 }
