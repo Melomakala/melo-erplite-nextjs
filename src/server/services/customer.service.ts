@@ -25,5 +25,13 @@ export const customerService = {
             }
         });
         return result;
+    },
+    async deleteCustomer(session_token: string, customer_id: string) {
+        const session = await getValidSession(session_token);
+        await customerRepository.deleteCustomer(customer_id);
+        logger.info("deleteCustomer", "Customer deleted successfully", {
+            user_id: session.user_id,
+            customer_id,
+        });
     }
 }

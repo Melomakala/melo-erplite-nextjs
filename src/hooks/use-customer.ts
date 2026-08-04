@@ -56,3 +56,28 @@ export function useGetCustomer(params: ParamGetCustomerValues) {
         gcTime: 5 * 60 * 1000, // ลบหลังซะ หลังจากไม่มีคนไช้ 5 นาที
     });
 }
+
+async function deleteCustomer(customer_id: string) {
+    const response = await fetch("/api/customer/deleteCustomer", {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ customer_id }),
+    });
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to delete customer");
+    }
+    return response.json();
+}
+
+export function useDeleteCustomer() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: deleteCustomer,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["customers"] });
+        },
+    });
+}

@@ -44,5 +44,12 @@ export const customerRepository = {
                 totalPages: Math.ceil(totalPages / limit),
             }
         };
+    },
+    async deleteCustomer(customer_id: string) {
+        return await prisma.customer.delete({
+            where: {
+                customer_id: customer_id,
+            },
+        });
     }
 }

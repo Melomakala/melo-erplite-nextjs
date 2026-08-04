@@ -30,7 +30,7 @@ export default function ProductsPage() {
     category_id: filters.category !== "all" ? filters.category : undefined,
     status: filters.status !== "all" ? (filters.status as "active" | "inactive") : undefined,
   });
-
+  // hook
   const createProduct = useCreateProduct();
   const deleteProduct = useDeleteProduct();
   const updateProduct = useUpdateProduct();
@@ -81,14 +81,11 @@ export default function ProductsPage() {
     if (!deletingProduct) return;
     try {
       await deleteProduct.mutateAsync(deletingProduct.product_id);
-      setDeleteDialogOpen(false);
-      setDeletingProduct(null);
     } catch (error) {
       console.error("Delete product error:", error);
-      // Close modal on error or leave open for user feedback
-      setDeleteDialogOpen(false);
-      setDeletingProduct(null);
     }
+    setDeleteDialogOpen(false);
+    setDeletingProduct(null);
   }
 
   async function handleFormSubmit(formData: ProductFormValues) {
