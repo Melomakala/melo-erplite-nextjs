@@ -8,7 +8,6 @@ export const productFormSchema = z.object({
   status: z.enum(["active", "inactive"]),
 });
 
-export type ProductFormValues = z.infer<typeof productFormSchema>;
 
 export const paramGetProductSchema = z.object({
   page: z.number().min(1, "Page must be 1 or more"),
@@ -18,4 +17,5 @@ export const paramGetProductSchema = z.object({
   status: z.enum(["active", "inactive"]).optional(),
 });
 
+export type ProductFormValues = z.infer<typeof productFormSchema>;
 export type ParamGetProductValues = z.infer<typeof paramGetProductSchema>;

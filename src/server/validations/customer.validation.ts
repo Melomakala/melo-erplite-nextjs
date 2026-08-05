@@ -8,7 +8,6 @@ export const customerFormSchema = z.object({
   status: z.enum(["active", "inactive"]),
 });
 
-export type CustomerFormValues = z.infer<typeof customerFormSchema>;
 
 export const paramGetCustomerSchema = z.object({
   page: z.number().min(1, "Page must be 1 or more"),
@@ -17,4 +16,5 @@ export const paramGetCustomerSchema = z.object({
   status: z.enum(["active", "inactive"]).optional(),
 });
 
+export type CustomerFormValues = z.infer<typeof customerFormSchema>;
 export type ParamGetCustomerValues = z.infer<typeof paramGetCustomerSchema>;

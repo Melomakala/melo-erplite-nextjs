@@ -19,6 +19,7 @@ export const customerRepository = {
         const where: Prisma.CustomerWhereInput = {
             ...(query && {
                 OR: [
+                    { customer_id: { contains: query } },
                     { name: { contains: query } },
                     { phone: { contains: query } },
                     { email: { contains: query } },

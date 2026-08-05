@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import OrderToolbar from "./_components/order-toolbar";
 import OrderTable from "./_components/order-table";
-import OrderFormDialog from "./_components/order-form-dialog";
+import OrderFormDialog, { DraftOrderItem } from "./_components/order-form-dialog";
 import OrderDeleteDialog from "./_components/order-delete-dialog";
 import OrderDetailSheet from "./_components/order-detail-sheet";
 import {
@@ -14,104 +14,15 @@ import {
   OrderStatus,
 } from "./_components/order-types";
 
-// ─── Initial Mock Data ────────────────────────────────────────────────────────
-
-const MOCK_CUSTOMERS: MockCustomer[] = [
-  { customer_id: "CUST-001", name: "Somchai Jaidee" },
-  { customer_id: "CUST-002", name: "Mana Deeja" },
-  { customer_id: "CUST-003", name: "Somsri Rungruang" },
-  { customer_id: "CUST-004", name: "Piti Rakdee" },
-];
-
-const MOCK_PRODUCTS: MockProduct[] = [
-  { product_id: "PROD-001", name: "ERP Lite Standard License", price: 15000 },
-  { product_id: "PROD-002", name: "Implementation & Setup Service", price: 35000 },
-  { product_id: "PROD-003", name: "User Training Workshop", price: 8000 },
-  { product_id: "PROD-004", name: "Annual Support Package", price: 12000 },
-];
-
-const INITIAL_ORDERS: MockOrder[] = [
-  {
-    order_id: "ORD-1001",
-    customer_id: "CUST-001",
-    customer_name: "Somchai Jaidee",
-    status: "PAID",
-    grand_total: 50000,
-    created_at: "2026-08-01 10:30",
-    updated_at: "2026-08-01 10:30",
-    order_details: [
-      {
-        order_detail_id: "DET-1",
-        order_id: "ORD-1001",
-        product_id: "PROD-001",
-        product_name: "ERP Lite Standard License",
-        price: 15000,
-        quantity: 1,
-        total: 15000,
-        created_at: "2026-08-01 10:30",
-      },
-      {
-        order_detail_id: "DET-2",
-        order_id: "ORD-1001",
-        product_id: "PROD-002",
-        product_name: "Implementation & Setup Service",
-        price: 35000,
-        quantity: 1,
-        total: 35000,
-        created_at: "2026-08-01 10:30",
-      },
-    ],
-  },
-  {
-    order_id: "ORD-1002",
-    customer_id: "CUST-002",
-    customer_name: "Mana Deeja",
-    status: "PENDING",
-    grand_total: 8000,
-    created_at: "2026-08-03 14:15",
-    updated_at: "2026-08-03 14:15",
-    order_details: [
-      {
-        order_detail_id: "DET-3",
-        order_id: "ORD-1002",
-        product_id: "PROD-003",
-        product_name: "User Training Workshop",
-        price: 8000,
-        quantity: 1,
-        total: 8000,
-        created_at: "2026-08-03 14:15",
-      },
-    ],
-  },
-  {
-    order_id: "ORD-1003",
-    customer_id: "CUST-003",
-    customer_name: "Somsri Rungruang",
-    status: "SHIPPED",
-    grand_total: 24000,
-    created_at: "2026-08-04 09:00",
-    updated_at: "2026-08-04 09:00",
-    order_details: [
-      {
-        order_detail_id: "DET-4",
-        order_id: "ORD-1003",
-        product_id: "PROD-004",
-        product_name: "Annual Support Package",
-        price: 12000,
-        quantity: 2,
-        total: 24000,
-        created_at: "2026-08-04 09:00",
-      },
-    ],
-  },
-];
-
 // ─── Main Orders Page Component ───────────────────────────────────────────────
 
 export default function OrdersPage() {
-  const [orders, setOrders] = useState<MockOrder[]>(INITIAL_ORDERS);
+  const [orders, setOrders] = useState<MockOrder[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
+
+  const customers: MockCustomer[] = [];
+  const products: MockProduct[] = [];
 
   // Dialog State: Create / Edit Order
   const [orderFormOpen, setOrderFormOpen] = useState(false);
@@ -159,36 +70,57 @@ export default function OrdersPage() {
     setOrderDeleteOpen(true);
   }
 
-  function handleOrderFormSubmit(data: { customer_id: string; status: OrderStatus }) {
-    const cust = MOCK_CUSTOMERS.find((c) => c.customer_id === data.customer_id);
+  function handleOrderFormSubmit(data: {
+    customer_id: string;
+    status: OrderStatus;
+    items: DraftOrderItem[];
+  }) {
+    const cust = customers.find((c) => c.customer_id === data.customer_id);
     const custName = cust ? cust.name : "Unknown Customer";
     const nowStr = new Date().toISOString().replace("T", " ").substring(0, 16);
 
+    const formattedDetails: MockOrderDetail[] = data.items.map((item, idx) => ({
+      order_detail_id: item.id.startsWith("ITEM-") ? `DET-${Date.now()}-${idx}` : item.id,
+      order_id: orderToEdit ? orderToEdit.order_id : "",
+      product_id: item.product_id,
+      product_name: item.product_name,
+      price: item.price,
+      quantity: item.quantity,
+      total: item.total,
+      created_at: nowStr,
+    }));
+
+    const calculatedGrandTotal = formattedDetails.reduce((sum, d) => sum + d.total, 0);
+
     if (orderToEdit) {
-      // Update existing order header
       setOrders((prev) =>
         prev.map((ord) =>
           ord.order_id === orderToEdit.order_id
             ? {
-                ...ord,
-                customer_id: data.customer_id,
-                customer_name: custName,
-                status: data.status,
-                updated_at: nowStr,
-              }
+              ...ord,
+              customer_id: data.customer_id,
+              customer_name: custName,
+              status: data.status,
+              order_details: formattedDetails.map((d) => ({
+                ...d,
+                order_id: orderToEdit.order_id,
+              })),
+              grand_total: calculatedGrandTotal,
+              updated_at: nowStr,
+            }
             : ord
         )
       );
     } else {
-      // Create new order
       const nextIdNum = orders.length + 1001;
+      const newOrderId = `ORD-${nextIdNum}`;
       const newOrder: MockOrder = {
-        order_id: `ORD-${nextIdNum}`,
+        order_id: newOrderId,
         customer_id: data.customer_id,
         customer_name: custName,
         status: data.status,
-        grand_total: 0,
-        order_details: [],
+        grand_total: calculatedGrandTotal,
+        order_details: formattedDetails.map((d) => ({ ...d, order_id: newOrderId })),
         created_at: nowStr,
         updated_at: nowStr,
       };
@@ -255,13 +187,13 @@ export default function OrdersPage() {
         const updatedDetails = ord.order_details.map((item) =>
           item.order_detail_id === detail_id
             ? {
-                ...item,
-                product_id: detail.product_id,
-                product_name: detail.product_name,
-                price: detail.price,
-                quantity: detail.quantity,
-                total: lineTotal,
-              }
+              ...item,
+              product_id: detail.product_id,
+              product_name: detail.product_name,
+              price: detail.price,
+              quantity: detail.quantity,
+              total: lineTotal,
+            }
             : item
         );
 
@@ -328,12 +260,13 @@ export default function OrdersPage() {
         onDeleteOrder={handleOpenDeleteOrder}
       />
 
-      {/* Create / Edit Order Header Dialog */}
+      {/* Create / Edit Order Dialog */}
       <OrderFormDialog
         open={orderFormOpen}
         onOpenChange={setOrderFormOpen}
         orderToEdit={orderToEdit}
-        customers={MOCK_CUSTOMERS}
+        customers={customers}
+        products={products}
         onSubmit={handleOrderFormSubmit}
       />
 
@@ -352,7 +285,7 @@ export default function OrdersPage() {
           if (!open) setSelectedOrderForDetails(null);
         }}
         order={currentDetailOrder}
-        products={MOCK_PRODUCTS}
+        products={products}
         onAddDetail={handleAddDetail}
         onUpdateDetail={handleUpdateDetail}
         onDeleteDetail={handleDeleteDetail}
