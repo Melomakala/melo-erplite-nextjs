@@ -45,12 +45,12 @@ export default function OrderDetailSheet({
     setDetailFormOpen(true);
   }
 
-  function handleOpenEdit(detail: MockOrderDetail) {
+  function handleOpenEdit(detail: OrderDetail) {
     setDetailToEdit(detail);
     setDetailFormOpen(true);
   }
 
-  function handleOpenDelete(detail: MockOrderDetail) {
+  function handleOpenDelete(detail: OrderDetail) {
     setDetailToDelete(detail);
     setDetailDeleteOpen(true);
   }

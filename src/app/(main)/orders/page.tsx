@@ -7,33 +7,31 @@ import OrderFormDialog, { DraftOrderItem } from "./_components/order-form-dialog
 import OrderDeleteDialog from "./_components/order-delete-dialog";
 import OrderDetailSheet from "./_components/order-detail-sheet";
 import {
-  MockCustomer,
-  MockOrder,
-  MockOrderDetail,
-  MockProduct,
+  Order,
+  OrderProduct,
   OrderStatus,
 } from "./_components/order-types";
+import { type OrderFormValues } from "@/server/validations/order.validation";
 
 // ─── Main Orders Page Component ───────────────────────────────────────────────
 
 export default function OrdersPage() {
-  const [orders, setOrders] = useState<MockOrder[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
 
-  const customers: MockCustomer[] = [];
-  const products: MockProduct[] = [];
+  const products: OrderProduct[] = [];
 
   // Dialog State: Create / Edit Order
   const [orderFormOpen, setOrderFormOpen] = useState(false);
-  const [orderToEdit, setOrderToEdit] = useState<MockOrder | null>(null);
+  const [orderToEdit, setOrderToEdit] = useState<Order | null>(null);
 
   // Dialog State: Delete Order
   const [orderDeleteOpen, setOrderDeleteOpen] = useState(false);
-  const [orderToDelete, setOrderToDelete] = useState<MockOrder | null>(null);
+  const [orderToDelete, setOrderToDelete] = useState<Order | null>(null);
 
   // Sheet State: Order Details View
-  const [selectedOrderForDetails, setSelectedOrderForDetails] = useState<MockOrder | null>(null);
+  const [selectedOrderForDetails, setSelectedOrderForDetails] = useState<Order | null>(null);
 
   // ─── Filtered Orders ────────────────────────────────────────────────────────
 
@@ -60,76 +58,26 @@ export default function OrdersPage() {
     setOrderFormOpen(true);
   }
 
-  function handleOpenEditOrder(order: MockOrder) {
+  function handleOpenEditOrder(order: Order) {
     setOrderToEdit(order);
     setOrderFormOpen(true);
   }
 
-  function handleOpenDeleteOrder(order: MockOrder) {
+  function handleOpenDeleteOrder(order: Order) {
     setOrderToDelete(order);
     setOrderDeleteOpen(true);
   }
 
-  function handleOrderFormSubmit(data: {
-    customer_id: string;
-    status: OrderStatus;
-    items: DraftOrderItem[];
-  }) {
-    console.log(data);
-    const cust = customers.find((c) => c.customer_id === data.customer_id);
-    const custName = cust ? cust.name : "Unknown Customer";
-    const nowStr = new Date().toISOString().replace("T", " ").substring(0, 16);
-
-    const formattedDetails: MockOrderDetail[] = data.items.map((item, idx) => ({
-      order_id: orderToEdit ? orderToEdit.order_id : "",
-      product_id: item.product_id,
-      product_name: item.product_name,
-      price: item.price,
-      quantity: item.quantity,
-      total: item.total,
-      created_at: nowStr,
-    }));
-
-    const calculatedGrandTotal = formattedDetails.reduce((sum, d) => sum + d.total, 0);
-
-    if (orderToEdit) {
-      setOrders((prev) =>
-        prev.map((ord) =>
-          ord.order_id === orderToEdit.order_id
-            ? {
-              ...ord,
-              customer_id: data.customer_id,
-              customer_name: custName,
-              status: data.status,
-              order_details: formattedDetails.map((d) => ({
-                ...d,
-                order_id: orderToEdit.order_id,
-              })),
-              grand_total: calculatedGrandTotal,
-              updated_at: nowStr,
-            }
-            : ord
-        )
-      );
-    } else {
-      const nextIdNum = orders.length + 1001;
-      const newOrderId = `ORD-${nextIdNum}`;
-      const newOrder: MockOrder = {
-        order_id: newOrderId,
-        customer_id: data.customer_id,
-        customer_name: custName,
-        status: data.status,
-        grand_total: calculatedGrandTotal,
-        order_details: formattedDetails.map((d) => ({ ...d, order_id: newOrderId })),
-        created_at: nowStr,
-        updated_at: nowStr,
-      };
-      setOrders((prev) => [newOrder, ...prev]);
-    }
+  function handleOrderFormSubmit(data: OrderFormValues) {
+    // Ready for backend API call (POST/PUT)
+    console.log("Order form submitted to API:", data);
+    setOrderFormOpen(false);
   }
 
   function handleConfirmDeleteOrder(order_id: string) {
-    setOrders((prev) => prev.filter((ord) => ord.order_id !== order_id));
+    // Ready for backend API call (DELETE)
+    console.log("Delete order API:", order_id);
+    setOrderDeleteOpen(false);
     if (selectedOrderForDetails?.order_id === order_id) {
       setSelectedOrderForDetails(null);
     }
@@ -141,35 +89,8 @@ export default function OrdersPage() {
     order_id: string,
     detail: { product_id: string; product_name: string; price: number; quantity: number }
   ) {
-    const nowStr = new Date().toISOString().replace("T", " ").substring(0, 16);
-    const lineTotal = detail.price * detail.quantity;
-
-    setOrders((prev) =>
-      prev.map((ord) => {
-        if (ord.order_id !== order_id) return ord;
-
-        const newDetailItem: MockOrderDetail = {
-          order_detail_id: `DET-${Date.now()}`,
-          order_id,
-          product_id: detail.product_id,
-          product_name: detail.product_name,
-          price: detail.price,
-          quantity: detail.quantity,
-          total: lineTotal,
-          created_at: nowStr,
-        };
-
-        const updatedDetails = [...ord.order_details, newDetailItem];
-        const newGrandTotal = updatedDetails.reduce((sum, item) => sum + item.total, 0);
-
-        return {
-          ...ord,
-          order_details: updatedDetails,
-          grand_total: newGrandTotal,
-          updated_at: nowStr,
-        };
-      })
-    );
+    // Ready for backend API call
+    console.log("Add order detail API:", order_id, detail);
   }
 
   function handleUpdateDetail(
@@ -177,58 +98,13 @@ export default function OrdersPage() {
     detail_id: string,
     detail: { product_id: string; product_name: string; price: number; quantity: number }
   ) {
-    const nowStr = new Date().toISOString().replace("T", " ").substring(0, 16);
-    const lineTotal = detail.price * detail.quantity;
-
-    setOrders((prev) =>
-      prev.map((ord) => {
-        if (ord.order_id !== order_id) return ord;
-
-        const updatedDetails = ord.order_details.map((item) =>
-          item.order_detail_id === detail_id
-            ? {
-              ...item,
-              product_id: detail.product_id,
-              product_name: detail.product_name,
-              price: detail.price,
-              quantity: detail.quantity,
-              total: lineTotal,
-            }
-            : item
-        );
-
-        const newGrandTotal = updatedDetails.reduce((sum, item) => sum + item.total, 0);
-
-        return {
-          ...ord,
-          order_details: updatedDetails,
-          grand_total: newGrandTotal,
-          updated_at: nowStr,
-        };
-      })
-    );
+    // Ready for backend API call
+    console.log("Update order detail API:", order_id, detail_id, detail);
   }
 
   function handleDeleteDetail(order_id: string, detail_id: string) {
-    const nowStr = new Date().toISOString().replace("T", " ").substring(0, 16);
-
-    setOrders((prev) =>
-      prev.map((ord) => {
-        if (ord.order_id !== order_id) return ord;
-
-        const updatedDetails = ord.order_details.filter(
-          (item) => item.order_detail_id !== detail_id
-        );
-        const newGrandTotal = updatedDetails.reduce((sum, item) => sum + item.total, 0);
-
-        return {
-          ...ord,
-          order_details: updatedDetails,
-          grand_total: newGrandTotal,
-          updated_at: nowStr,
-        };
-      })
-    );
+    // Ready for backend API call
+    console.log("Delete order detail API:", order_id, detail_id);
   }
 
   return (

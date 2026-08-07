@@ -22,6 +22,10 @@ import { Order, OrderProduct, OrderStatus } from "./order-types";
 import CustomerCombobox from "./customer-combobox";
 import ProductCombobox from "./product-combobox";
 import { type ProductFormValues } from "@/server/validations/product.validation";
+import { orderSchema, type OrderFormValues } from "@/server/validations/order.validation";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm, useFieldArray } from "react-hook-form";
+import { z } from "zod";
 
 export interface DraftOrderItem {
   product_id: string;
@@ -36,11 +40,7 @@ interface OrderFormDialogProps {
   onOpenChange: (open: boolean) => void;
   orderToEdit?: Order | null;
   products: OrderProduct[];
-  onSubmit: (data: {
-    customer_id: string;
-    status: OrderStatus;
-    items: DraftOrderItem[];
-  }) => void;
+  onSubmit: (data: OrderFormValues) => void;
 }
 
 export default function OrderFormDialog({
@@ -52,38 +52,46 @@ export default function OrderFormDialog({
 }: OrderFormDialogProps) {
   const isEditing = !!orderToEdit;
 
-  const [customerId, setCustomerId] = useState<string>("");
-  const [status, setStatus] = useState<OrderStatus>("PENDING");
-  const [items, setItems] = useState<DraftOrderItem[]>([]);
-  const [error, setError] = useState<string>("");
-
   // Quick line item entry form state
   const [selectedProduct, setSelectedProduct] = useState<ProductFormValues | null>(null);
   const [itemPrice, setItemPrice] = useState<number>(0);
   const [itemQuantity, setItemQuantity] = useState<number>(1);
   const [itemError, setItemError] = useState<string>("");
 
+  const form = useForm<OrderFormValues>({
+    resolver: zodResolver(orderSchema),
+    defaultValues: {
+      customer_id: "",
+      status: "PENDING",
+      order_details: [],
+    },
+  });
+  const { fields, append, remove, update } = useFieldArray({
+    control: form.control,
+    name: "order_details"
+  });
+
   useEffect(() => {
     if (open) {
       if (orderToEdit) {
-        setCustomerId(orderToEdit.customer_id);
-        setStatus(orderToEdit.status);
-        setItems(
-          orderToEdit.order_details.map((d) => ({
-            id: d.order_detail_id,
+        form.reset({
+          customer_id: orderToEdit.customer_id,
+          status: orderToEdit.status,
+          order_details: orderToEdit.order_details.map((d) => ({
             product_id: d.product_id,
             product_name: d.product_name,
             price: d.price,
             quantity: d.quantity,
             total: d.total,
-          }))
-        );
+          })),
+        });
       } else {
-        setCustomerId("");
-        setStatus("PENDING");
-        setItems([]);
+        form.reset({
+          customer_id: "",
+          status: "PENDING",
+          order_details: [],
+        });
       }
-      setError("");
       setItemError("");
 
       // Set default product for item entry form
@@ -91,7 +99,7 @@ export default function OrderFormDialog({
       setItemPrice(0);
       setItemQuantity(1);
     }
-  }, [open, orderToEdit, products]);
+  }, [open, orderToEdit, products, form]);
 
   // When product selection changes in quick entry bar
   function handleProductChange(product: ProductFormValues | null) {
@@ -120,61 +128,45 @@ export default function OrderFormDialog({
       return;
     }
 
-    const prodName = selectedProduct.name;
     const lineTotal = itemPrice * itemQuantity;
 
-    const newItem: DraftOrderItem = {
+    append({
       product_id: selectedProduct.product_id || "",
-      product_name: prodName,
+      product_name: selectedProduct.name || "",
       price: itemPrice,
       quantity: itemQuantity,
       total: lineTotal,
-    };
-
-    setItems((prev) => [...prev, newItem]);
-    setError("");
+    });
 
     // Reset quick entry quantity
     setItemQuantity(1);
-
     setSelectedProduct(null);
     setItemPrice(0)
   }
 
   // Remove line item
-  function handleRemoveItem(product_id: string) {
-    setItems((prev) => prev.filter((item) => item.product_id !== product_id));
+  function handleRemoveItem(index: number) {
+    remove(index)
   }
 
   // Update item quantity directly in table
-  function handleUpdateItemQty(product_id: string, qty: number) {
+  function handleUpdateItemQty(index: number, qty: number) {
     const validQty = Math.max(1, qty);
-    setItems((prev) =>
-      prev.map((item) =>
-        item.product_id === product_id
-          ? { ...item, quantity: validQty, total: item.price * validQty }
-          : item
-      )
-    );
+    const item = fields[index];
+    update(index, {
+      ...item,
+      quantity: validQty,
+      total: item.price * validQty,
+    });
   }
 
   // Grand Total calculation
   const grandTotal = useMemo(() => {
-    return items.reduce((sum, item) => sum + item.total, 0);
-  }, [items]);
+    return fields.reduce((sum, item) => sum + item.total, 0);
+  }, [fields]);
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!customerId) {
-      setError("Please select or type a customer name");
-      return;
-    }
-
-    onSubmit({
-      customer_id: customerId,
-      status,
-      items,
-    });
+  function handleOnSubmit(data: OrderFormValues) {
+    onSubmit(data);
     onOpenChange(false);
   }
 
@@ -195,7 +187,7 @@ export default function OrderFormDialog({
           </DialogHeader>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-hidden">
+        <form onSubmit={form.handleSubmit(handleOnSubmit)} className="flex-1 flex flex-col overflow-hidden">
           <div className="flex-1 overflow-y-auto p-4 space-y-5">
             {/* Header Form: Customer Combobox & Status */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-3 rounded-lg border border-border bg-card items-start">
@@ -204,12 +196,11 @@ export default function OrderFormDialog({
                   Customer <span className="text-destructive">*</span>
                 </Label>
                 <CustomerCombobox
-                  value={customerId}
+                  value={form.watch("customer_id")}
                   onChange={(val) => {
-                    setCustomerId(val);
-                    setError("");
+                    form.setValue("customer_id", val, { shouldValidate: true });
                   }}
-                  error={error}
+                  error={form.formState.errors.customer_id?.message}
                 />
               </div>
 
@@ -218,8 +209,8 @@ export default function OrderFormDialog({
                   Order Status
                 </Label>
                 <Select
-                  value={status}
-                  onValueChange={(val) => setStatus(val as OrderStatus)}
+                  value={form.watch("status")}
+                  onValueChange={(val) => form.setValue("status", val as any, { shouldValidate: true })}
                 >
                   <SelectTrigger id="order-status" className="h-9 data-[size=default]:h-9 text-xs w-full bg-card">
                     <SelectValue />
@@ -242,7 +233,7 @@ export default function OrderFormDialog({
                   Order Details (Line Items)
                 </h3>
                 <span className="text-[11px] font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                  {items.length} {items.length === 1 ? "item" : "items"}
+                  {fields.length} {fields.length === 1 ? "item" : "items"}
                 </span>
               </div>
 
@@ -318,7 +309,7 @@ export default function OrderFormDialog({
                     </tr>
                   </thead>
                   <tbody>
-                    {items.length === 0 ? (
+                    {fields.length === 0 ? (
                       <tr>
                         <td colSpan={5} className="px-3 py-6 text-center text-muted-foreground">
                           <div className="flex flex-col items-center justify-center space-y-1">
@@ -331,9 +322,9 @@ export default function OrderFormDialog({
                         </td>
                       </tr>
                     ) : (
-                      items.map((item) => (
+                      fields.map((item, index) => (
                         <tr
-                          key={item.product_id}
+                          key={item.id}
                           className="border-b border-border last:border-0 hover:bg-muted/20"
                         >
                           <td className="px-3 py-2 font-medium text-foreground">
@@ -348,7 +339,7 @@ export default function OrderFormDialog({
                               min="1"
                               value={item.quantity}
                               onChange={(e) =>
-                                handleUpdateItemQty(item.product_id, Number(e.target.value))
+                                handleUpdateItemQty(index, Number(e.target.value))
                               }
                               className="h-7 w-16 text-xs text-center mx-auto"
                             />
@@ -362,7 +353,7 @@ export default function OrderFormDialog({
                               variant="ghost"
                               size="icon"
                               className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                              onClick={() => handleRemoveItem(item.product_id)}
+                              onClick={() => handleRemoveItem(index)}
                             >
                               <Trash2 className="h-3.5 w-3.5" />
                               <span className="sr-only">Remove item</span>
