@@ -12,6 +12,7 @@ import {
   OrderStatus,
 } from "./_components/order-types";
 import { type OrderFormValues } from "@/server/validations/order.validation";
+import { useCreateOrder } from "@/hooks/use-order";
 
 // ─── Main Orders Page Component ───────────────────────────────────────────────
 
@@ -21,6 +22,9 @@ export default function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState("ALL");
 
   const products: OrderProduct[] = [];
+
+  //hoookkkkkkkk
+  const createOrder = useCreateOrder();
 
   // Dialog State: Create / Edit Order
   const [orderFormOpen, setOrderFormOpen] = useState(false);
@@ -68,8 +72,9 @@ export default function OrdersPage() {
     setOrderDeleteOpen(true);
   }
 
-  function handleOrderFormSubmit(data: OrderFormValues) {
+  async function handleOrderFormSubmit(data: OrderFormValues) {
     // Ready for backend API call (POST/PUT)
+    await createOrder.mutateAsync(data);
     console.log("Order form submitted to API:", data);
     setOrderFormOpen(false);
   }
@@ -113,9 +118,6 @@ export default function OrdersPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Orders</h1>
-          <p className="text-xs text-muted-foreground">
-            Manage customer orders and order line items.
-          </p>
         </div>
       </div>
 
