@@ -3,18 +3,18 @@
 import { useState, useRef, useEffect } from "react";
 import { Search, ChevronDown, Check, Package } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { MockProduct } from "./order-types";
+import { useDebounce } from "@/hooks/use-debounce";
+import { useGetProducts } from "@/hooks/use-product";
+import { type ProductFormValues } from "@/server/validations/product.validation";
 
 interface ProductComboboxProps {
-  products: MockProduct[];
   value: string;
-  onChange: (productId: string) => void;
+  onChange: (product: ProductFormValues | null) => void;
   error?: string;
   className?: string;
 }
 
 export default function ProductCombobox({
-  products,
   value,
   onChange,
   error,
@@ -22,9 +22,17 @@ export default function ProductCombobox({
 }: ProductComboboxProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const debouncedQuery = useDebounce(query, 300);
+  const { data, isLoading } = useGetProducts({
+    page: 1,
+    limit: 20,
+    query: debouncedQuery,
+    status: "active",
+  });
+  const product = data?.data ?? [];
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const selectedProduct = products.find((p) => p.product_id === value);
+  const selectedProduct = product.find((p) => p.product_id === value);
 
   // Sync input display when value changes externally
   useEffect(() => {
@@ -51,14 +59,11 @@ export default function ProductCombobox({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [selectedProduct]);
 
-  const filteredProducts = products.filter((prod) =>
-    prod.name.toLowerCase().includes(query.toLowerCase()) ||
-    prod.product_id.toLowerCase().includes(query.toLowerCase())
-  );
+  const filteredProducts = product;
 
-  function handleSelect(prod: MockProduct) {
-    onChange(prod.product_id);
-    setQuery(prod.name);
+  function handleSelect(product: ProductFormValues) {
+    onChange(product);
+    setQuery(product?.name);
     setOpen(false);
   }
 
@@ -66,7 +71,7 @@ export default function ProductCombobox({
     setQuery(e.target.value);
     setOpen(true);
     if (!e.target.value) {
-      onChange("");
+      onChange(null);
     }
   }
 
@@ -103,11 +108,10 @@ export default function ProductCombobox({
                     key={prod.product_id}
                     type="button"
                     onClick={() => handleSelect(prod)}
-                    className={`w-full flex items-center justify-between px-2.5 py-1.5 text-xs rounded-sm transition-colors text-left ${
-                      isSelected
-                        ? "bg-accent text-accent-foreground font-medium"
-                        : "hover:bg-muted/70 text-foreground"
-                    }`}
+                    className={`w-full flex items-center justify-between px-2.5 py-1.5 text-xs rounded-sm transition-colors text-left ${isSelected
+                      ? "bg-accent text-accent-foreground font-medium"
+                      : "hover:bg-muted/70 text-foreground"
+                      }`}
                   >
                     <div className="flex items-center gap-2 overflow-hidden">
                       <Package className="h-3.5 w-3.5 text-muted-foreground shrink-0" />

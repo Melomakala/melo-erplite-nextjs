@@ -9,12 +9,12 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { MockOrder } from "./order-types";
+import { Order } from "./order-types";
 
 interface OrderDeleteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  order: MockOrder | null;
+  order: Order | null;
   onConfirmDelete: (order_id: string) => void;
 }
 

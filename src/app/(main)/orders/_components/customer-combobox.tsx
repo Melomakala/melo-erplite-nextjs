@@ -3,26 +3,37 @@
 import { useState, useRef, useEffect } from "react";
 import { Search, ChevronDown, Check, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { MockCustomer } from "./order-types";
+import { useDebounce } from "@/hooks/use-debounce";
+import { useGetCustomer } from "@/hooks/use-customer";
+import { type CustomerResponseValues } from "@/server/validations/order.validation";
 
 interface CustomerComboboxProps {
-  customers: MockCustomer[];
   value: string;
   onChange: (customerId: string) => void;
   error?: string;
 }
 
 export default function CustomerCombobox({
-  customers,
   value,
   onChange,
   error,
 }: CustomerComboboxProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const debouncedQuery = useDebounce(query, 300);
+  const { data, isLoading } = useGetCustomer({
+    page: 1,
+    limit: 10,
+    query: debouncedQuery,
+    status: "active",
+  })
+  const customers = data?.data ?? [];
+
+
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const selectedCustomer = customers.find((c) => c.customer_id === value);
+
+  const selectedCustomer = customers.find((c: CustomerResponseValues) => c.customer_id === value);
 
   // Sync input display when value changes externally
   useEffect(() => {
@@ -50,12 +61,9 @@ export default function CustomerCombobox({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [selectedCustomer]);
 
-  const filteredCustomers = customers.filter((cust) =>
-    cust.name.toLowerCase().includes(query.toLowerCase()) ||
-    cust.customer_id.toLowerCase().includes(query.toLowerCase())
-  );
+  const filteredCustomers = customers;
 
-  function handleSelect(cust: MockCustomer) {
+  function handleSelect(cust: CustomerResponseValues) {
     onChange(cust.customer_id);
     setQuery(cust.name);
     setOpen(false);
@@ -95,18 +103,17 @@ export default function CustomerCombobox({
             </div>
           ) : (
             <div className="p-1 space-y-0.5">
-              {filteredCustomers.map((cust) => {
+              {filteredCustomers.map((cust: CustomerResponseValues) => {
                 const isSelected = cust.customer_id === value;
                 return (
                   <button
                     key={cust.customer_id}
                     type="button"
                     onClick={() => handleSelect(cust)}
-                    className={`w-full flex items-center justify-between px-2.5 py-1.5 text-xs rounded-sm transition-colors text-left ${
-                      isSelected
-                        ? "bg-accent text-accent-foreground font-medium"
-                        : "hover:bg-muted/70 text-foreground"
-                    }`}
+                    className={`w-full flex items-center justify-between px-2.5 py-1.5 text-xs rounded-sm transition-colors text-left ${isSelected
+                      ? "bg-accent text-accent-foreground font-medium"
+                      : "hover:bg-muted/70 text-foreground"
+                      }`}
                   >
                     <div className="flex items-center gap-2">
                       <User className="h-3.5 w-3.5 text-muted-foreground" />

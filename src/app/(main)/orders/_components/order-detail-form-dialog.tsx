@@ -18,13 +18,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MockOrderDetail, MockProduct } from "./order-types";
+import { OrderDetail, OrderProduct } from "./order-types";
 
 interface OrderDetailFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  detailToEdit?: MockOrderDetail | null;
-  products: MockProduct[];
+  detailToEdit?: OrderDetail | null;
+  products: OrderProduct[];
   onSubmit: (data: { product_id: string; product_name: string; price: number; quantity: number }) => void;
 }
 

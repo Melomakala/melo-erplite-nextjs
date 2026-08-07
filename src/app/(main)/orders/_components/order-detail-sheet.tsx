@@ -9,15 +9,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { MockOrder, MockOrderDetail, MockProduct } from "./order-types";
+import { Order, OrderDetail, OrderProduct } from "./order-types";
 import OrderDetailFormDialog from "./order-detail-form-dialog";
 import OrderDetailDeleteDialog from "./order-detail-delete-dialog";
 
 interface OrderDetailSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  order: MockOrder | null;
-  products: MockProduct[];
+  order: Order | null;
+  products: OrderProduct[];
   onAddDetail: (order_id: string, detail: { product_id: string; product_name: string; price: number; quantity: number }) => void;
   onUpdateDetail: (order_id: string, detail_id: string, detail: { product_id: string; product_name: string; price: number; quantity: number }) => void;
   onDeleteDetail: (order_id: string, detail_id: string) => void;
@@ -33,10 +33,10 @@ export default function OrderDetailSheet({
   onDeleteDetail,
 }: OrderDetailSheetProps) {
   const [detailFormOpen, setDetailFormOpen] = useState(false);
-  const [detailToEdit, setDetailToEdit] = useState<MockOrderDetail | null>(null);
+  const [detailToEdit, setDetailToEdit] = useState<OrderDetail | null>(null);
 
   const [detailDeleteOpen, setDetailDeleteOpen] = useState(false);
-  const [detailToDelete, setDetailToDelete] = useState<MockOrderDetail | null>(null);
+  const [detailToDelete, setDetailToDelete] = useState<OrderDetail | null>(null);
 
   if (!order) return null;
 

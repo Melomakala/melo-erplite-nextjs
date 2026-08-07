@@ -75,12 +75,12 @@ export default function OrdersPage() {
     status: OrderStatus;
     items: DraftOrderItem[];
   }) {
+    console.log(data);
     const cust = customers.find((c) => c.customer_id === data.customer_id);
     const custName = cust ? cust.name : "Unknown Customer";
     const nowStr = new Date().toISOString().replace("T", " ").substring(0, 16);
 
     const formattedDetails: MockOrderDetail[] = data.items.map((item, idx) => ({
-      order_detail_id: item.id.startsWith("ITEM-") ? `DET-${Date.now()}-${idx}` : item.id,
       order_id: orderToEdit ? orderToEdit.order_id : "",
       product_id: item.product_id,
       product_name: item.product_name,
@@ -265,7 +265,6 @@ export default function OrdersPage() {
         open={orderFormOpen}
         onOpenChange={setOrderFormOpen}
         orderToEdit={orderToEdit}
-        customers={customers}
         products={products}
         onSubmit={handleOrderFormSubmit}
       />

@@ -2,7 +2,7 @@
 
 import { Eye, Pencil, Trash2, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { MockOrder, OrderStatus } from "./order-types";
+import { Order, OrderStatus } from "./order-types";
 
 function OrderStatusBadge({ status }: { status: OrderStatus }) {
   switch (status) {
@@ -41,10 +41,10 @@ function OrderStatusBadge({ status }: { status: OrderStatus }) {
 }
 
 interface OrderTableProps {
-  orders: MockOrder[];
-  onViewDetails: (order: MockOrder) => void;
-  onEditOrder: (order: MockOrder) => void;
-  onDeleteOrder: (order: MockOrder) => void;
+  orders: Order[];
+  onViewDetails: (order: Order) => void;
+  onEditOrder: (order: Order) => void;
+  onDeleteOrder: (order: Order) => void;
 }
 
 export default function OrderTable({

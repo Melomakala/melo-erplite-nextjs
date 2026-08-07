@@ -18,12 +18,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MockCustomer, MockOrder, MockProduct, OrderStatus } from "./order-types";
+import { Order, OrderProduct, OrderStatus } from "./order-types";
 import CustomerCombobox from "./customer-combobox";
 import ProductCombobox from "./product-combobox";
+import { type ProductFormValues } from "@/server/validations/product.validation";
 
 export interface DraftOrderItem {
-  id: string;
   product_id: string;
   product_name: string;
   price: number;
@@ -34,9 +34,8 @@ export interface DraftOrderItem {
 interface OrderFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  orderToEdit?: MockOrder | null;
-  customers: MockCustomer[];
-  products: MockProduct[];
+  orderToEdit?: Order | null;
+  products: OrderProduct[];
   onSubmit: (data: {
     customer_id: string;
     status: OrderStatus;
@@ -48,7 +47,6 @@ export default function OrderFormDialog({
   open,
   onOpenChange,
   orderToEdit,
-  customers,
   products,
   onSubmit,
 }: OrderFormDialogProps) {
@@ -60,7 +58,7 @@ export default function OrderFormDialog({
   const [error, setError] = useState<string>("");
 
   // Quick line item entry form state
-  const [selectedProductId, setSelectedProductId] = useState<string>("");
+  const [selectedProduct, setSelectedProduct] = useState<ProductFormValues | null>(null);
   const [itemPrice, setItemPrice] = useState<number>(0);
   const [itemQuantity, setItemQuantity] = useState<number>(1);
   const [itemError, setItemError] = useState<string>("");
@@ -89,31 +87,27 @@ export default function OrderFormDialog({
       setItemError("");
 
       // Set default product for item entry form
-      if (products.length > 0) {
-        setSelectedProductId(products[0].product_id);
-        setItemPrice(products[0].price);
-        setItemQuantity(1);
-      } else {
-        setSelectedProductId("");
-        setItemPrice(0);
-        setItemQuantity(1);
-      }
+      setSelectedProduct(null);
+      setItemPrice(0);
+      setItemQuantity(1);
     }
   }, [open, orderToEdit, products]);
 
   // When product selection changes in quick entry bar
-  function handleProductChange(prodId: string) {
-    setSelectedProductId(prodId);
-    const prod = products.find((p) => p.product_id === prodId);
-    if (prod) {
-      setItemPrice(prod.price);
+  function handleProductChange(product: ProductFormValues | null) {
+    if (product?.product_id) {
+      setSelectedProduct(product);
+      setItemPrice(product.price);
+    } else {
+      setSelectedProduct(null);
+      setItemPrice(0);
     }
   }
 
   // Add line item to list
   function handleAddItem() {
     setItemError("");
-    if (!selectedProductId) {
+    if (!selectedProduct) {
       setItemError("Please select a product");
       return;
     }
@@ -126,13 +120,11 @@ export default function OrderFormDialog({
       return;
     }
 
-    const prod = products.find((p) => p.product_id === selectedProductId);
-    const prodName = prod ? prod.name : "Unknown Product";
+    const prodName = selectedProduct.name;
     const lineTotal = itemPrice * itemQuantity;
 
     const newItem: DraftOrderItem = {
-      id: `ITEM-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
-      product_id: selectedProductId,
+      product_id: selectedProduct.product_id || "",
       product_name: prodName,
       price: itemPrice,
       quantity: itemQuantity,
@@ -144,19 +136,22 @@ export default function OrderFormDialog({
 
     // Reset quick entry quantity
     setItemQuantity(1);
+
+    setSelectedProduct(null);
+    setItemPrice(0)
   }
 
   // Remove line item
-  function handleRemoveItem(id: string) {
-    setItems((prev) => prev.filter((item) => item.id !== id));
+  function handleRemoveItem(product_id: string) {
+    setItems((prev) => prev.filter((item) => item.product_id !== product_id));
   }
 
   // Update item quantity directly in table
-  function handleUpdateItemQty(id: string, qty: number) {
+  function handleUpdateItemQty(product_id: string, qty: number) {
     const validQty = Math.max(1, qty);
     setItems((prev) =>
       prev.map((item) =>
-        item.id === id
+        item.product_id === product_id
           ? { ...item, quantity: validQty, total: item.price * validQty }
           : item
       )
@@ -209,7 +204,6 @@ export default function OrderFormDialog({
                   Customer <span className="text-destructive">*</span>
                 </Label>
                 <CustomerCombobox
-                  customers={customers}
                   value={customerId}
                   onChange={(val) => {
                     setCustomerId(val);
@@ -260,8 +254,7 @@ export default function OrderFormDialog({
                   <div className="sm:col-span-5 space-y-1">
                     <Label className="text-[11px] text-muted-foreground">Product</Label>
                     <ProductCombobox
-                      products={products}
-                      value={selectedProductId}
+                      value={selectedProduct?.product_id || ""}
                       onChange={handleProductChange}
                     />
                   </div>
@@ -340,7 +333,7 @@ export default function OrderFormDialog({
                     ) : (
                       items.map((item) => (
                         <tr
-                          key={item.id}
+                          key={item.product_id}
                           className="border-b border-border last:border-0 hover:bg-muted/20"
                         >
                           <td className="px-3 py-2 font-medium text-foreground">
@@ -355,7 +348,7 @@ export default function OrderFormDialog({
                               min="1"
                               value={item.quantity}
                               onChange={(e) =>
-                                handleUpdateItemQty(item.id, Number(e.target.value))
+                                handleUpdateItemQty(item.product_id, Number(e.target.value))
                               }
                               className="h-7 w-16 text-xs text-center mx-auto"
                             />
@@ -369,7 +362,7 @@ export default function OrderFormDialog({
                               variant="ghost"
                               size="icon"
                               className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                              onClick={() => handleRemoveItem(item.id)}
+                              onClick={() => handleRemoveItem(item.product_id)}
                             >
                               <Trash2 className="h-3.5 w-3.5" />
                               <span className="sr-only">Remove item</span>
