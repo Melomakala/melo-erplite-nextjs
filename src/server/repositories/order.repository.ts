@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { toCents, fromCents } from "@/lib/currency";
-import { type OrderFormValues } from "../validations/order.validation";
+import { type OrderFormValues, type ParamOrderValues } from "../validations/order.validation";
+import { Prisma } from "@/generated/prisma";
 
 export const orderRepository = {
     async createOrder(data: OrderFormValues, grand_total: number, user_id: string,) {
@@ -31,4 +32,74 @@ export const orderRepository = {
         },
         )
     },
+    async getOrder(data: ParamOrderValues) {
+        const { page, limit, status, query } = data;
+        const where: Prisma.OrderWhereInput = {
+            ...(query && {
+                OR: [
+                    {
+                        order_id: {
+                            contains: query
+                        }
+                    },
+                    {
+                        customer: {
+                            name: {
+                                contains: query
+                            }
+                        }
+                    }
+                ]
+            }),
+            ...(status && {
+                status: status
+            }),
+        }
+        const [orders, total] = await Promise.all([
+            prisma.order.findMany({
+                where,
+                skip: (page - 1) * limit,
+                take: limit,
+                include: {
+                    customer: {
+                        select: {
+                            customer_id: true,
+                            name: true,
+                        }
+                    },
+                    order_details: {
+                        include: {
+                            product: {
+                                select: {
+                                    product_id: true,
+                                    name: true
+                                }
+                            }
+                        }
+                    }
+                },
+                orderBy: {
+                    created_at: "desc"
+                }
+            }),
+            prisma.order.count({ where })
+        ]);
+        return {
+            data: orders.map((order) => ({
+                ...order,
+                grand_total: fromCents(order.grand_total),
+                order_details: order.order_details.map((detail) => ({
+                    ...detail,
+                    price: fromCents(detail.price),
+                    total: fromCents(detail.total),
+                })),
+            })),
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages: Math.ceil(total / limit),
+            }
+        }
+    }
 }

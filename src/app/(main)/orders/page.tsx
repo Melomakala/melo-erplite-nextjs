@@ -12,7 +12,8 @@ import {
   OrderStatus,
 } from "./_components/order-types";
 import { type OrderFormValues } from "@/server/validations/order.validation";
-import { useCreateOrder } from "@/hooks/use-order";
+import { useCreateOrder, useGetOrder } from "@/hooks/use-order";
+import { useDebounce } from "@/hooks/use-debounce";
 
 // ─── Main Orders Page Component ───────────────────────────────────────────────
 
@@ -22,9 +23,15 @@ export default function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState("ALL");
 
   const products: OrderProduct[] = [];
-
+  const debouncedSearch = useDebounce(searchQuery, 300);
   //hoookkkkkkkk
   const createOrder = useCreateOrder();
+  const { data, isLoading } = useGetOrder({
+    page: 1,
+    limit: 10,
+    query: debouncedSearch || undefined,
+    status: statusFilter !== "ALL" ? (statusFilter as OrderStatus) : undefined,
+  });
 
   // Dialog State: Create / Edit Order
   const [orderFormOpen, setOrderFormOpen] = useState(false);
@@ -39,21 +46,13 @@ export default function OrdersPage() {
 
   // ─── Filtered Orders ────────────────────────────────────────────────────────
 
-  const filteredOrders = useMemo(() => {
-    return orders.filter((ord) => {
-      const matchesSearch =
-        ord.order_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        ord.customer_name.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesStatus = statusFilter === "ALL" || ord.status === statusFilter;
-      return matchesSearch && matchesStatus;
-    });
-  }, [orders, searchQuery, statusFilter]);
+  const orderList: Order[] = data?.data ?? [];
 
   // Keep selected order for details synced with orders state
   const currentDetailOrder = useMemo(() => {
     if (!selectedOrderForDetails) return null;
-    return orders.find((o) => o.order_id === selectedOrderForDetails.order_id) || null;
-  }, [orders, selectedOrderForDetails]);
+    return orderList.find((o) => o.order_id === selectedOrderForDetails.order_id) || null;
+  }, [orderList, selectedOrderForDetails]);
 
   // ─── Order Handlers (Create, Update, Delete) ───────────────────────────────
 
@@ -132,7 +131,7 @@ export default function OrdersPage() {
 
       {/* Main Order Table */}
       <OrderTable
-        orders={filteredOrders}
+        orders={orderList}
         onViewDetails={(order) => setSelectedOrderForDetails(order)}
         onEditOrder={handleOpenEditOrder}
         onDeleteOrder={handleOpenDeleteOrder}

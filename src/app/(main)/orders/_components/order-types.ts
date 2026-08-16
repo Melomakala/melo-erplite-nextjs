@@ -6,7 +6,11 @@ export interface OrderDetail {
   order_detail_id: string;
   order_id: string;
   product_id: string;
-  product_name: string;
+  product_name?: string;
+  product?: {
+    product_id: string;
+    name: string;
+  };
   quantity: number;
   price: number;
   total: number;
@@ -16,7 +20,11 @@ export interface OrderDetail {
 export interface Order {
   order_id: string;
   customer_id: string;
-  customer_name: string;
+  name?: string;
+  customer?: {
+    customer_id: string;
+    name: string;
+  };
   status: OrderStatus;
   grand_total: number;
   order_details: OrderDetail[];

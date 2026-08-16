@@ -1,6 +1,6 @@
 import { orderRepository } from "../repositories/order.repository";
 import { getValidSession } from "../helpers/session.helper";
-import { type OrderFormValues } from "../validations/order.validation";
+import { type OrderFormValues, type ParamOrderValues } from "../validations/order.validation";
 import { logger } from "../helpers/logger";
 
 export const orderService = {
@@ -14,5 +14,17 @@ export const orderService = {
                 ...data,
             }
         })
+    },
+
+    async getOrder(session_token: string, params: ParamOrderValues) {
+        const session = await getValidSession(session_token);
+        const result = await orderRepository.getOrder(params);
+        logger.info("getOrder", "Order fetched successfully", {
+            user_id: session.user_id,
+            params: {
+                ...params,
+            }
+        })
+        return result;
     }
 }

@@ -82,7 +82,7 @@ export default function OrderDetailSheet({
                     Order Details: <span className="font-mono text-primary">{order.order_id}</span>
                   </DialogTitle>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Customer: <span className="font-medium text-foreground">{order.customer_name}</span> | Status:{" "}
+                    Customer: <span className="font-medium text-foreground">{order.customer?.name || order.name || "-"}</span> | Status:{" "}
                     <span className="font-semibold text-foreground">{order.status}</span>
                   </p>
                 </div>
@@ -124,7 +124,7 @@ export default function OrderDetailSheet({
                     order.order_details.map((detail) => (
                       <tr key={detail.order_detail_id} className="border-b border-border last:border-0 hover:bg-muted/20">
                         <td className="px-3 py-2.5 font-medium text-foreground text-xs">
-                          {detail.product_name}
+                          {detail.product?.name || detail.product_name || "-"}
                         </td>
                         <td className="px-3 py-2.5 text-right text-muted-foreground text-xs tabular-nums">
                           ฿{detail.price.toLocaleString()}

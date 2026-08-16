@@ -3,6 +3,7 @@
 import { Eye, Pencil, Trash2, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Order, OrderStatus } from "./order-types";
+import { type OrderFormValues } from "@/server/validations/order.validation";
 
 function OrderStatusBadge({ status }: { status: OrderStatus }) {
   switch (status) {
@@ -91,7 +92,7 @@ export default function OrderTable({
 
                   {/* Customer Name */}
                   <td className="px-4 py-3 font-medium text-foreground">
-                    {order.customer_name}
+                    {order.customer?.name || order.name || "-"}
                   </td>
 
                   {/* Items Count */}
@@ -101,7 +102,7 @@ export default function OrderTable({
 
                   {/* Grand Total */}
                   <td className="px-4 py-3 text-right font-semibold text-foreground tabular-nums">
-                    ฿{order.grand_total.toLocaleString()}
+                    ฿{(order.grand_total || 0).toLocaleString()}
                   </td>
 
                   {/* Status */}
@@ -111,7 +112,7 @@ export default function OrderTable({
 
                   {/* Created At */}
                   <td className="px-4 py-3 text-xs text-muted-foreground">
-                    {order.created_at}
+                    {order.created_at ? new Date(order.created_at).toLocaleDateString() : "-"}
                   </td>
 
                   {/* Actions */}

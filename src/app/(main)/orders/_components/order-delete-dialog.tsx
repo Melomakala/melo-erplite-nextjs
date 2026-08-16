@@ -41,7 +41,7 @@ export default function OrderDeleteDialog({
           <DialogDescription className="text-xs pt-1">
             Are you sure you want to delete order{" "}
             <span className="font-mono font-semibold text-foreground">{order.order_id}</span> for{" "}
-            <span className="font-semibold text-foreground">{order.customer_name}</span>?
+            <span className="font-semibold text-foreground">{order.customer?.name || order.name || "-"}</span>?
             This will also delete all associated order detail line items.
           </DialogDescription>
         </DialogHeader>
