@@ -18,12 +18,13 @@ import { useDebounce } from "@/hooks/use-debounce";
 // ─── Main Orders Page Component ───────────────────────────────────────────────
 
 export default function OrdersPage() {
-  const [orders, setOrders] = useState<Order[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
 
   const products: OrderProduct[] = [];
   const debouncedSearch = useDebounce(searchQuery, 300);
+
+
   //hoookkkkkkkk
   const createOrder = useCreateOrder();
   const { data, isLoading } = useGetOrder({
@@ -42,17 +43,16 @@ export default function OrdersPage() {
   const [orderToDelete, setOrderToDelete] = useState<Order | null>(null);
 
   // Sheet State: Order Details View
-  const [selectedOrderForDetails, setSelectedOrderForDetails] = useState<Order | null>(null);
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
   // ─── Filtered Orders ────────────────────────────────────────────────────────
 
   const orderList: Order[] = data?.data ?? [];
 
-  // Keep selected order for details synced with orders state
-  const currentDetailOrder = useMemo(() => {
-    if (!selectedOrderForDetails) return null;
-    return orderList.find((o) => o.order_id === selectedOrderForDetails.order_id) || null;
-  }, [orderList, selectedOrderForDetails]);
+  // Keep selected order for details synced with orders state from TanStack Query
+  const currentDetailOrder = selectedOrderId ?
+    orderList.find((o) => o.order_id === selectedOrderId) ?? null
+    : null;
 
   // ─── Order Handlers (Create, Update, Delete) ───────────────────────────────
 
@@ -82,8 +82,8 @@ export default function OrdersPage() {
     // Ready for backend API call (DELETE)
     console.log("Delete order API:", order_id);
     setOrderDeleteOpen(false);
-    if (selectedOrderForDetails?.order_id === order_id) {
-      setSelectedOrderForDetails(null);
+    if (selectedOrderId === order_id) {
+      setSelectedOrderId(null);
     }
   }
 
@@ -132,7 +132,7 @@ export default function OrdersPage() {
       {/* Main Order Table */}
       <OrderTable
         orders={orderList}
-        onViewDetails={(order) => setSelectedOrderForDetails(order)}
+        onViewDetails={(order) => setSelectedOrderId(order.order_id)}
         onEditOrder={handleOpenEditOrder}
         onDeleteOrder={handleOpenDeleteOrder}
       />
@@ -158,7 +158,7 @@ export default function OrdersPage() {
       <OrderDetailSheet
         open={!!currentDetailOrder}
         onOpenChange={(open) => {
-          if (!open) setSelectedOrderForDetails(null);
+          if (!open) setSelectedOrderId(null);
         }}
         order={currentDetailOrder}
         products={products}
