@@ -518,6 +518,7 @@ Protected Routes:
 - products
 - orders
 - customers
+- inventory
 - home/panel
 
 Rules:
