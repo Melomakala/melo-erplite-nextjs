@@ -107,5 +107,76 @@ export const orderRepository = {
                 order_id: order_id
             }
         })
+    },
+    async updateOrder(order_id: string, grand_total: number, data: OrderFormValues, user_id: string) {
+        return await prisma.$transaction(async (tx) => {
+            // update main order
+            const order = await tx.order.update({
+                where: {
+                    order_id: order_id
+                },
+                data: {
+                    customer: {
+                        connect: {
+                            customer_id: data.customer_id,
+                        },
+                    },
+                    status: data.status,
+                    grand_total: toCents(grand_total),
+                    update_by: user_id
+                },
+            });
+            // delete
+            const in_OrderDetail_Id: string[] = data.order_details
+                .map((item) => item.order_detail_id)
+                .filter((id): id is string => Boolean(id));
+            await tx.orderDetail.deleteMany({
+                where: {
+                    order_id: order_id,
+                    order_detail_id: { notIn: in_OrderDetail_Id },
+                }
+            });
+            // updateOrCreate
+            for (const item of data.order_details) {
+                if (item.order_detail_id) {
+                    await tx.orderDetail.update({
+                        where: {
+                            order_detail_id: item.order_detail_id,
+                        },
+                        data: {
+                            product: {
+                                connect: {
+                                    product_id: item.product_id,
+                                }
+                            },
+                            quantity: item.quantity,
+                            price: toCents(item.price),
+                            total: toCents(item.total),
+                            update_by: user_id,
+                            updated_at: new Date(),
+                        },
+                    });
+                } else {
+                    await tx.orderDetail.create({
+                        data: {
+                            product: {
+                                connect: {
+                                    product_id: item.product_id,
+                                }
+                            },
+                            order: {
+                                connect: {
+                                    order_id: order_id,
+                                }
+                            },
+                            quantity: item.quantity,
+                            price: toCents(item.price),
+                            total: toCents(item.total),
+                            create_by: user_id
+                        },
+                    });
+                }
+            }
+        })
     }
 }

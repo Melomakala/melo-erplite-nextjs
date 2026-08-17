@@ -28,6 +28,16 @@ export const orderService = {
         return result;
     },
 
+    async updateOrder(session_token: string, order_id: string, data: OrderFormValues) {
+        const session = await getValidSession(session_token);
+        const grand_total = data.order_details.reduce((sum, item) => sum + item.total, 0)
+        await orderRepository.updateOrder(order_id, grand_total, data, session.user_id);
+        logger.info("updateOrder", "Order updated successfully", {
+            user_id: session.user_id,
+            order_id: order_id,
+        })
+    },
+
     async deleteOrder(session_token: string, order_id: string) {
         const session = await getValidSession(session_token);
         await orderRepository.deleteOrder(order_id);

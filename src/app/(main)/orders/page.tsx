@@ -11,7 +11,7 @@ import {
   OrderStatus,
 } from "./_components/order-types";
 import { type OrderFormValues } from "@/server/validations/order.validation";
-import { useCreateOrder, useGetOrder, useDeleteOrder } from "@/hooks/use-order";
+import { useCreateOrder, useGetOrder, useDeleteOrder, useUpdateOrder } from "@/hooks/use-order";
 import { useDebounce } from "@/hooks/use-debounce";
 
 // ─── Main Orders Page Component ───────────────────────────────────────────────
@@ -24,6 +24,7 @@ export default function OrdersPage() {
 
   //hoookkkkkkkk
   const createOrder = useCreateOrder();
+  const updateOrder = useUpdateOrder();
   const deleteOrder = useDeleteOrder();
   const { data, isLoading } = useGetOrder({
     page: 1,
@@ -72,7 +73,10 @@ export default function OrdersPage() {
   async function handleOrderFormSubmit(data: OrderFormValues) {
     if (orderToEdit) {
       try {
-        console.log("Update order API:", data);
+        await updateOrder.mutateAsync({
+          order_id: orderToEdit.order_id,
+          body: data
+        });
       } catch (error) {
         // TODO some day I will show error message
         console.error(error);

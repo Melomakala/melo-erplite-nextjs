@@ -80,3 +80,28 @@ export function useDeleteOrder() {
         },
     });
 }
+
+async function updateOrder(data: { order_id: string, body: OrderFormValues }) {
+    const response = await fetch("/api/order/updateOrder", {
+        method: "PUT",
+        body: JSON.stringify(data),
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
+    const result = await response.json();
+    if (!response.ok) {
+        throw new Error(result.message);
+    }
+    return result.data;
+}
+
+export function useUpdateOrder() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: updateOrder,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["orders"] });
+        },
+    });
+}
