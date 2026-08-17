@@ -26,5 +26,14 @@ export const orderService = {
             }
         })
         return result;
+    },
+
+    async deleteOrder(session_token: string, order_id: string) {
+        const session = await getValidSession(session_token);
+        await orderRepository.deleteOrder(order_id);
+        logger.info("deleteOrder", "Order deleted successfully", {
+            user_id: session.user_id,
+            order_id: order_id,
+        })
     }
 }

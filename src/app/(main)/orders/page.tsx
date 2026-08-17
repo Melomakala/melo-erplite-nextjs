@@ -11,7 +11,7 @@ import {
   OrderStatus,
 } from "./_components/order-types";
 import { type OrderFormValues } from "@/server/validations/order.validation";
-import { useCreateOrder, useGetOrder } from "@/hooks/use-order";
+import { useCreateOrder, useGetOrder, useDeleteOrder } from "@/hooks/use-order";
 import { useDebounce } from "@/hooks/use-debounce";
 
 // ─── Main Orders Page Component ───────────────────────────────────────────────
@@ -24,6 +24,7 @@ export default function OrdersPage() {
 
   //hoookkkkkkkk
   const createOrder = useCreateOrder();
+  const deleteOrder = useDeleteOrder();
   const { data, isLoading } = useGetOrder({
     page: 1,
     limit: 10,
@@ -53,35 +54,51 @@ export default function OrdersPage() {
 
   // ─── Order Handlers (Create, Update, Delete) ───────────────────────────────
 
-  function handleOpenCreateOrder() {
+  function handleClickCreate() {
     setOrderToEdit(null);
     setOrderFormOpen(true);
   }
 
-  function handleOpenEditOrder(order: Order) {
+  function handleClickEdit(order: Order) {
     setOrderToEdit(order);
     setOrderFormOpen(true);
   }
 
-  function handleOpenDeleteOrder(order: Order) {
+  function handleClickDelete(order: Order) {
     setOrderToDelete(order);
     setOrderDeleteOpen(true);
   }
 
   async function handleOrderFormSubmit(data: OrderFormValues) {
-    // Ready for backend API call (POST/PUT)
-    await createOrder.mutateAsync(data);
-    console.log("Order form submitted to API:", data);
+    if (orderToEdit) {
+      try {
+        console.log("Update order API:", data);
+      } catch (error) {
+        // TODO some day I will show error message
+        console.error(error);
+      }
+    } else {
+      try {
+        await createOrder.mutateAsync(data);
+      } catch (error) {
+        // TODO some day I will show error message
+        console.error(error);
+      }
+    }
     setOrderFormOpen(false);
   }
 
-  function handleConfirmDeleteOrder(order_id: string) {
-    // Ready for backend API call (DELETE)
-    console.log("Delete order API:", order_id);
-    setOrderDeleteOpen(false);
-    if (selectedOrderId === order_id) {
-      setSelectedOrderId(null);
+  async function handleConfirmDeleteOrder(order_id: string) {
+    try {
+      await deleteOrder.mutateAsync(order_id);
+      if (selectedOrderId === order_id) {
+        setSelectedOrderId(null);
+      }
+    } catch (error) {
+      // TODO some day I will show error message
+      console.error(error);
     }
+    setOrderDeleteOpen(false);
   }
 
   return (
@@ -99,15 +116,15 @@ export default function OrdersPage() {
         onSearchChange={setSearchQuery}
         statusFilter={statusFilter}
         onStatusFilterChange={setStatusFilter}
-        onCreateClick={handleOpenCreateOrder}
+        onCreateClick={handleClickCreate}
       />
 
       {/* Main Order Table */}
       <OrderTable
         orders={orderList}
         onViewDetails={(order) => setSelectedOrderId(order.order_id)}
-        onEditOrder={handleOpenEditOrder}
-        onDeleteOrder={handleOpenDeleteOrder}
+        onEditOrder={handleClickEdit}
+        onDeleteOrder={handleClickDelete}
       />
 
       {/* Create / Edit Order Dialog */}

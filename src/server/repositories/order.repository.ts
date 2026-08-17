@@ -100,5 +100,12 @@ export const orderRepository = {
                 totalPages: Math.ceil(total / limit),
             }
         }
+    },
+    async deleteOrder(order_id: string) {
+        return await prisma.order.delete({
+            where: {
+                order_id: order_id
+            }
+        })
     }
 }

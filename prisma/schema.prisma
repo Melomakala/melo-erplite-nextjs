@@ -101,7 +101,7 @@ model Order {
 model OrderDetail {
   order_detail_id    String   @id @default(cuid())
   order_id      String
-  order         Order @relation(fields: [order_id], references: [order_id])
+  order         Order @relation(fields: [order_id],references: [order_id],onDelete: Cascade)
 
   product_id    String
   product       Product @relation(fields: [product_id], references: [product_id])

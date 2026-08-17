@@ -55,3 +55,28 @@ export function useGetOrder(params: ParamOrderValues) {
         gcTime: 5 * 60 * 1000,
     });
 }
+
+async function deleteOrder(order_id: string) {
+    const response = await fetch("/api/order/deleteOrder", {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ order_id }),
+    });
+    const result = await response.json();
+    if (!response.ok) {
+        throw new Error(result.message);
+    }
+    return result.data;
+}
+
+export function useDeleteOrder() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: deleteOrder,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["orders"] });
+        },
+    });
+}
