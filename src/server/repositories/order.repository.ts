@@ -71,7 +71,6 @@ export const orderRepository = {
                         include: {
                             product: {
                                 select: {
-                                    product_id: true,
                                     name: true
                                 }
                             }

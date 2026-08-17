@@ -71,13 +71,12 @@ export default function OrderFormDialog({
   useEffect(() => {
     if (open) {
       if (orderToEdit) {
-        console.log(orderToEdit)
         form.reset({
           customer_id: orderToEdit.customer_id,
           status: orderToEdit.status,
           order_details: orderToEdit.order_details.map((d) => ({
             product_id: d.product_id,
-            product_name: d.product?.name || "",
+            product_name: d.product?.name || " ",
             price: d.price,
             quantity: d.quantity,
             total: d.total,
