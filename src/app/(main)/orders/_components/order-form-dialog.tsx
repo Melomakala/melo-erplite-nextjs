@@ -18,14 +18,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Order, OrderProduct, OrderStatus } from "./order-types";
+import { Order, OrderStatus } from "./order-types";
 import CustomerCombobox from "./customer-combobox";
 import ProductCombobox from "./product-combobox";
 import { type ProductFormValues } from "@/server/validations/product.validation";
 import { orderSchema, type OrderFormValues } from "@/server/validations/order.validation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useFieldArray } from "react-hook-form";
-import { z } from "zod";
 
 export interface DraftOrderItem {
   product_id: string;
@@ -39,7 +38,6 @@ interface OrderFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   orderToEdit?: Order | null;
-  products: OrderProduct[];
   onSubmit: (data: OrderFormValues) => void;
 }
 
@@ -47,7 +45,6 @@ export default function OrderFormDialog({
   open,
   onOpenChange,
   orderToEdit,
-  products,
   onSubmit,
 }: OrderFormDialogProps) {
   const isEditing = !!orderToEdit;
@@ -74,12 +71,13 @@ export default function OrderFormDialog({
   useEffect(() => {
     if (open) {
       if (orderToEdit) {
+        console.log(orderToEdit)
         form.reset({
           customer_id: orderToEdit.customer_id,
           status: orderToEdit.status,
           order_details: orderToEdit.order_details.map((d) => ({
             product_id: d.product_id,
-            product_name: d.product_name,
+            product_name: d.product?.name || "",
             price: d.price,
             quantity: d.quantity,
             total: d.total,
@@ -99,7 +97,7 @@ export default function OrderFormDialog({
       setItemPrice(0);
       setItemQuantity(1);
     }
-  }, [open, orderToEdit, products, form]);
+  }, [open, orderToEdit, form]);
 
   // When product selection changes in quick entry bar
   function handleProductChange(product: ProductFormValues | null) {

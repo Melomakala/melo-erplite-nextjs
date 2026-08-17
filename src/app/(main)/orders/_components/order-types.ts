@@ -1,5 +1,3 @@
-// Order types — matching Prisma schema (tbl_order, tbl_order_detail)
-
 export type OrderStatus = "PENDING" | "PAID" | "SHIPPED" | "COMPLETED" | "CANCELLED";
 
 export interface OrderDetail {

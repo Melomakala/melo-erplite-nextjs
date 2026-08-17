@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Pencil, Trash2, ShoppingBag } from "lucide-react";
+import { Plus, Pencil, Printer, ShoppingBag } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -9,65 +9,25 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Order, OrderDetail, OrderProduct } from "./order-types";
-import OrderDetailFormDialog from "./order-detail-form-dialog";
-import OrderDetailDeleteDialog from "./order-detail-delete-dialog";
+import { Order, OrderDetail } from "./order-types";
 
 interface OrderDetailSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   order: Order | null;
-  products: OrderProduct[];
-  onAddDetail: (order_id: string, detail: { product_id: string; product_name: string; price: number; quantity: number }) => void;
-  onUpdateDetail: (order_id: string, detail_id: string, detail: { product_id: string; product_name: string; price: number; quantity: number }) => void;
-  onDeleteDetail: (order_id: string, detail_id: string) => void;
 }
 
 export default function OrderDetailSheet({
   open,
   onOpenChange,
   order,
-  products,
-  onAddDetail,
-  onUpdateDetail,
-  onDeleteDetail,
 }: OrderDetailSheetProps) {
-  const [detailFormOpen, setDetailFormOpen] = useState(false);
-  const [detailToEdit, setDetailToEdit] = useState<OrderDetail | null>(null);
-
-  const [detailDeleteOpen, setDetailDeleteOpen] = useState(false);
-  const [detailToDelete, setDetailToDelete] = useState<OrderDetail | null>(null);
-
   if (!order) return null;
 
-  function handleOpenAdd() {
-    setDetailToEdit(null);
-    setDetailFormOpen(true);
+  function handleDetailReport() {
+
   }
 
-  function handleOpenEdit(detail: OrderDetail) {
-    setDetailToEdit(detail);
-    setDetailFormOpen(true);
-  }
-
-  function handleOpenDelete(detail: OrderDetail) {
-    setDetailToDelete(detail);
-    setDetailDeleteOpen(true);
-  }
-
-  function handleDetailFormSubmit(data: { product_id: string; product_name: string; price: number; quantity: number }) {
-    if (!order) return;
-    if (detailToEdit) {
-      onUpdateDetail(order.order_id, detailToEdit.order_detail_id, data);
-    } else {
-      onAddDetail(order.order_id, data);
-    }
-  }
-
-  function handleConfirmDeleteDetail(detail_id: string) {
-    if (!order) return;
-    onDeleteDetail(order.order_id, detail_id);
-  }
 
   return (
     <>
@@ -87,8 +47,8 @@ export default function OrderDetailSheet({
                   </p>
                 </div>
 
-                <Button size="sm" onClick={handleOpenAdd} className="h-8 text-xs gap-1 shrink-0">
-                  <Plus className="h-3.5 w-3.5" /> Add Item
+                <Button size="sm" onClick={handleDetailReport} className="h-8 text-xs gap-1 shrink-0">
+                  <Printer className="h-3.5 w-3.5" /> Report
                 </Button>
               </div>
             </DialogHeader>
@@ -104,17 +64,16 @@ export default function OrderDetailSheet({
                     <th className="px-3 py-2.5 text-right">Price</th>
                     <th className="px-3 py-2.5 text-center">Qty</th>
                     <th className="px-3 py-2.5 text-right">Subtotal</th>
-                    <th className="px-3 py-2.5 text-center w-20">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {order.order_details.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-3 py-8 text-center text-muted-foreground text-xs">
+                      <td colSpan={4} className="px-3 py-8 text-center text-muted-foreground text-xs">
                         <div className="flex flex-col items-center justify-center space-y-1.5">
                           <ShoppingBag className="h-6 w-6 text-muted-foreground/50" />
                           <p>No items in this order yet.</p>
-                          <Button variant="link" size="sm" className="h-auto text-xs p-0" onClick={handleOpenAdd}>
+                          <Button variant="link" size="sm" className="h-auto text-xs p-0">
                             Click here to add an item
                           </Button>
                         </div>
@@ -134,28 +93,6 @@ export default function OrderDetailSheet({
                         </td>
                         <td className="px-3 py-2.5 text-right font-semibold text-foreground text-xs tabular-nums">
                           ฿{detail.total.toLocaleString()}
-                        </td>
-                        <td className="px-3 py-2.5 text-center">
-                          <div className="flex items-center justify-center gap-1">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                              onClick={() => handleOpenEdit(detail)}
-                            >
-                              <Pencil className="h-3.5 w-3.5" />
-                              <span className="sr-only">Edit item</span>
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                              onClick={() => handleOpenDelete(detail)}
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                              <span className="sr-only">Delete item</span>
-                            </Button>
-                          </div>
                         </td>
                       </tr>
                     ))
@@ -180,23 +117,6 @@ export default function OrderDetailSheet({
           </div>
         </DialogContent>
       </Dialog>
-
-      {/* Item Form Dialog */}
-      <OrderDetailFormDialog
-        open={detailFormOpen}
-        onOpenChange={setDetailFormOpen}
-        detailToEdit={detailToEdit}
-        products={products}
-        onSubmit={handleDetailFormSubmit}
-      />
-
-      {/* Item Delete Dialog */}
-      <OrderDetailDeleteDialog
-        open={detailDeleteOpen}
-        onOpenChange={setDetailDeleteOpen}
-        detail={detailToDelete}
-        onConfirmDelete={handleConfirmDeleteDetail}
-      />
     </>
   );
 }

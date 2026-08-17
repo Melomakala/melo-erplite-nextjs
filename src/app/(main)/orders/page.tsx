@@ -8,7 +8,6 @@ import OrderDeleteDialog from "./_components/order-delete-dialog";
 import OrderDetailSheet from "./_components/order-detail-sheet";
 import {
   Order,
-  OrderProduct,
   OrderStatus,
 } from "./_components/order-types";
 import { type OrderFormValues } from "@/server/validations/order.validation";
@@ -19,11 +18,9 @@ import { useDebounce } from "@/hooks/use-debounce";
 
 export default function OrdersPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [statusFilter, setStatusFilter] = useState<OrderStatus | "ALL">("ALL");
 
-  const products: OrderProduct[] = [];
   const debouncedSearch = useDebounce(searchQuery, 300);
-
 
   //hoookkkkkkkk
   const createOrder = useCreateOrder();
@@ -31,7 +28,7 @@ export default function OrdersPage() {
     page: 1,
     limit: 10,
     query: debouncedSearch || undefined,
-    status: statusFilter !== "ALL" ? (statusFilter as OrderStatus) : undefined,
+    status: statusFilter !== "ALL" ? statusFilter : undefined,
   });
 
   // Dialog State: Create / Edit Order
@@ -87,30 +84,6 @@ export default function OrdersPage() {
     }
   }
 
-  // ─── Order Details Handlers (Add Item, Update Item, Delete Item) ────────────
-
-  function handleAddDetail(
-    order_id: string,
-    detail: { product_id: string; product_name: string; price: number; quantity: number }
-  ) {
-    // Ready for backend API call
-    console.log("Add order detail API:", order_id, detail);
-  }
-
-  function handleUpdateDetail(
-    order_id: string,
-    detail_id: string,
-    detail: { product_id: string; product_name: string; price: number; quantity: number }
-  ) {
-    // Ready for backend API call
-    console.log("Update order detail API:", order_id, detail_id, detail);
-  }
-
-  function handleDeleteDetail(order_id: string, detail_id: string) {
-    // Ready for backend API call
-    console.log("Delete order detail API:", order_id, detail_id);
-  }
-
   return (
     <div className="space-y-4">
       {/* Page Header */}
@@ -142,7 +115,6 @@ export default function OrdersPage() {
         open={orderFormOpen}
         onOpenChange={setOrderFormOpen}
         orderToEdit={orderToEdit}
-        products={products}
         onSubmit={handleOrderFormSubmit}
       />
 
@@ -161,10 +133,6 @@ export default function OrdersPage() {
           if (!open) setSelectedOrderId(null);
         }}
         order={currentDetailOrder}
-        products={products}
-        onAddDetail={handleAddDetail}
-        onUpdateDetail={handleUpdateDetail}
-        onDeleteDetail={handleDeleteDetail}
       />
     </div>
   );

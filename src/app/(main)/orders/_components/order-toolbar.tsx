@@ -10,12 +10,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import type { OrderStatus } from "./order-types";
 
 interface OrderToolbarProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  statusFilter: string;
-  onStatusFilterChange: (status: string) => void;
+  statusFilter: OrderStatus | "ALL";
+  onStatusFilterChange: (status: OrderStatus | "ALL") => void;
   onCreateClick: () => void;
 }
 
